@@ -1,0 +1,519 @@
+import { useForm } from "react-hook-form";
+import { useNavigate, Link } from "react-router-dom";
+import toast from "react-hot-toast";
+import { registerUser } from "../firebase/authService";
+import { countries } from "../utils/countries";
+import { timezones } from "../utils/timezoneList";
+import { useState, useRef, useEffect } from "react";
+import { BiLoaderAlt } from "react-icons/bi";
+import { FiSearch, FiChevronDown } from "react-icons/fi";
+import { FiEye, FiEyeOff } from "react-icons/fi";
+
+export default function Register() {
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    formState: { errors },
+  } = useForm({
+    mode: "onChange",
+    reValidateMode: "onChange",
+    defaultValues: {
+      timezone: "America/New_York",
+      homeCountry: "US",
+      residencyThreshold: "183",
+      residencyPeriodStart: "2026-01-01",
+      residencyPeriodEnd: "2026-12-31",
+    },
+  });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+
+  // Watch values for inline validation and calculation criteria mapping
+  const periodStartValue = watch("residencyPeriodStart");
+  const passwordValue = watch("password");
+  const selectedCountryCode = watch("homeCountry");
+  const selectedTimezoneValue = watch("timezone");
+
+  // Searchable Dropdown States
+  const [countryDropdownOpen, setCountryDropdownOpen] = useState(false);
+  const [countrySearchQuery, setCountrySearchQuery] = useState("");
+  const [timezoneDropdownOpen, setTimezoneDropdownOpen] = useState(false);
+  const [timezoneSearchQuery, setTimezoneSearchQuery] = useState("");
+
+  const countryRef = useRef(null);
+  const timezoneRef = useRef(null);
+
+  // Close dropdowns on outside clicks
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (countryRef.current && !countryRef.current.contains(event.target)) {
+        setCountryDropdownOpen(false);
+      }
+      if (timezoneRef.current && !timezoneRef.current.contains(event.target)) {
+        setTimezoneDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Filter systems dynamically based on input match conditions
+  const filteredCountries = countries.filter((c) => {
+    const query = countrySearchQuery.toLowerCase().trim();
+
+    return (
+      c.name.toLowerCase().includes(query) ||
+      c.code.toLowerCase().includes(query)
+    );
+  });
+
+  const filteredTimezones = timezones.filter((t) => {
+    const query = timezoneSearchQuery.toLowerCase().trim();
+
+    return (
+      t.label.toLowerCase().includes(query) ||
+      t.value.toLowerCase().includes(query)
+    );
+  });
+
+  const currentCountryName =
+    countries.find((c) => c.code === selectedCountryCode)?.name ||
+    "Select Country";
+  const currentTimezoneLabel =
+    timezones.find((t) => t.value === selectedTimezoneValue)?.label ||
+    "Select Timezone";
+
+  // Timezone macro mapping configuration rules
+  const handleCountrySelect = (countryCode) => {
+    setValue("homeCountry", countryCode);
+    setCountryDropdownOpen(false);
+    setCountrySearchQuery("");
+
+    if (countryCode === "IN") setValue("timezone", "Asia/Kolkata");
+    else if (countryCode === "US") setValue("timezone", "America/New_York");
+    else if (countryCode === "GB") setValue("timezone", "Europe/London");
+    else if (countryCode === "SG") setValue("timezone", "Asia/Singapore");
+    else if (countryCode === "AE") setValue("timezone", "Asia/Dubai");
+  };
+
+  const handleTimezoneSelect = (tzValue) => {
+    setValue("timezone", tzValue);
+    setTimezoneDropdownOpen(false);
+    setTimezoneSearchQuery("");
+  };
+
+  const onSubmit = async (data) => {
+    setLoading(true);
+    try {
+      await registerUser(data.email, data.password, {
+        homeCountry: data.homeCountry,
+        timezone: data.timezone,
+        residencyThreshold: parseInt(data.residencyThreshold, 10),
+        residencyPeriodStart: data.residencyPeriodStart,
+        residencyPeriodEnd: data.residencyPeriodEnd,
+        nativeCountry: data.homeCountry,
+      });
+      toast.success("Account created successfully! Please sign in.");
+      navigate("/login");
+    } catch (error) {
+      switch (error.code) {
+        case "auth/email-already-in-use":
+          toast.error("An account with this email already exists");
+          break;
+
+        case "auth/invalid-email":
+          toast.error("Please enter a valid email address");
+          break;
+
+        case "auth/weak-password":
+          toast.error("Password is too weak");
+          break;
+
+        default:
+          toast.error("Registration failed. Please try again");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="flex min-h-screen bg-white">
+      {/* LEFT SIDE: Registration Form Panel */}
+      <div className="flex flex-col justify-center w-full px-8 md:w-1/2 lg:px-16 py-12 max-h-screen overflow-y-auto no-scrollbar">
+        <div className="w-full max-w-xl mx-auto">
+          <div className="mb-5 mt-20">
+            <h2 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-blue-600 via-purple-600 to-red-500 bg-clip-text text-transparent sm:text-4xl">
+              Create Your Account
+            </h2>
+            <p className="mt-2 text-sm text-slate-500 font-medium">
+              Track Your Stay Days Easily
+            </p>
+          </div>
+
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            {/* Section 1 */}
+            <div className="space-y-4">
+              <div className="inline-block">
+                <h3 className="text-sm font-bold uppercase tracking-wider text-[#2B4593]">
+                  1. Account Details
+                </h3>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-2">
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  {...register("email", {
+                    required: "Email address is required",
+                    pattern: {
+                      value: /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/,
+                      message:
+                        "Email must contain only lowercase letters (e.g. user@example.com)",
+                    },
+                  })}
+                  className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-sm outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 transition"
+                  placeholder="name@example.com"
+                />
+                {errors.email && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.email.message}
+                  </p>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-2">
+                    Password
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      autoComplete="new-password"
+                      {...register("password", {
+                        required: "Password is required",
+                        minLength: {
+                          value: 8,
+                          message:
+                            "Password must be at least 8 characters long",
+                        },
+                        pattern: {
+                          value:
+                            /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/,
+                          message:
+                            "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character",
+                        },
+                      })}
+                      // FIXED: Added prefix syntax `[&::-ms-reveal]:hidden` to securely suppress the native browser reveal icon
+                      className="w-full px-4 py-2 pr-12 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-sm outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 transition [&::-ms-reveal]:hidden [&::-ms-clear]:hidden"
+                      placeholder="••••••••"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700 cursor-pointer z-10"
+                    >
+                      {showPassword ? (
+                        <FiEyeOff size={18} />
+                      ) : (
+                        <FiEye size={18} />
+                      )}
+                    </button>
+                  </div>
+                  {errors.password && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {errors.password.message}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-2">
+                    Confirm Password
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showConfirmPassword ? "text" : "password"}
+                      autoComplete="new-password"
+                      {...register("confirmPassword", {
+                        required: "Please confirm your password",
+                        validate: (v) =>
+                          v === passwordValue || "Passwords do not match",
+                      })}
+                      // FIXED: Added prefix syntax `[&::-ms-reveal]:hidden` to securely suppress the native browser reveal icon
+                      className="w-full px-4 py-2 pr-12 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-sm outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 transition [&::-ms-reveal]:hidden [&::-ms-clear]:hidden"
+                      placeholder="••••••••"
+                    />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setShowConfirmPassword(!showConfirmPassword)
+                      }
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700 cursor-pointer z-10"
+                    >
+                      {showConfirmPassword ? (
+                        <FiEyeOff size={18} />
+                      ) : (
+                        <FiEye size={18} />
+                      )}
+                    </button>
+                  </div>
+                  {errors.confirmPassword && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {errors.confirmPassword.message}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Section 2 */}
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-sm font-bold uppercase tracking-wider text-[#2B4593]">
+                  2. Residency Settings
+                </h3>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {/* SEARCHABLE COUNTRY SELECT DROPDOWN */}
+                <div className="relative" ref={countryRef}>
+                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-2">
+                    Your Home Country
+                  </label>
+                  <div
+                    onClick={() => setCountryDropdownOpen(!countryDropdownOpen)}
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-sm flex items-center justify-between cursor-pointer hover:bg-white transition"
+                  >
+                    <span className="truncate">{currentCountryName}</span>
+                    <FiChevronDown
+                      className={`text-slate-400 transition-transform duration-200 ${countryDropdownOpen ? "rotate-180" : ""}`}
+                    />
+                  </div>
+
+                  {countryDropdownOpen && (
+                    <div className="absolute z-50 left-0 right-0 mt-1.5 bg-white border border-slate-200 rounded-xl shadow-2xl overflow-hidden max-h-60 flex flex-col">
+                      <div className="p-2 border-b border-slate-100 flex items-center gap-2 bg-slate-50">
+                        <FiSearch className="text-slate-400 shrink-0 ml-1" />
+                        <input
+                          type="text"
+                          value={countrySearchQuery}
+                          onChange={(e) =>
+                            setCountrySearchQuery(e.target.value)
+                          }
+                          placeholder="Search country..."
+                          className="w-full bg-transparent border-none outline-none text-xs text-slate-900 py-1"
+                          autoFocus
+                        />
+                      </div>
+                      <div className="overflow-y-auto flex-1 no-scrollbar">
+                        {filteredCountries.length === 0 ? (
+                          <div className="px-4 py-3 text-xs text-slate-400 italic text-center">
+                            No countries matched
+                          </div>
+                        ) : (
+                          filteredCountries.map((c) => (
+                            <div
+                              key={c.code}
+                              onClick={() => handleCountrySelect(c.code)}
+                              className={`px-4 py-2 text-xs text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition cursor-pointer flex items-center justify-between ${selectedCountryCode === c.code ? "bg-slate-100 font-bold text-slate-900" : ""}`}
+                            >
+                              <span className="truncate">{c.name}</span>
+                              <span className="text-slate-400 uppercase text-[10px] font-mono font-medium">
+                                {c.code}
+                              </span>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  <input type="hidden" {...register("homeCountry")} />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-2">
+                    Minimum Days Required
+                  </label>
+                  <input
+                    type="number"
+                    {...register("residencyThreshold", {
+                      required: "Residency threshold is required",
+                      min: { value: 1, message: "Must be greater than 0" },
+                      max: { value: 365, message: "Cannot exceed 365 days" },
+                    })}
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-sm outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 transition"
+                  />
+                  {errors.residencyThreshold && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {errors.residencyThreshold.message}
+                    </p>
+                  )}
+                </div>
+
+                {/* SEARCHABLE TIMEZONE SELECT DROPDOWN */}
+                <div className="relative" ref={timezoneRef}>
+                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-2">
+                    Your Time Zone
+                  </label>
+                  <div
+                    onClick={() =>
+                      setTimezoneDropdownOpen(!timezoneDropdownOpen)
+                    }
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-sm flex items-center justify-between cursor-pointer hover:bg-white transition"
+                  >
+                    <span className="truncate">{currentTimezoneLabel}</span>
+                    <FiChevronDown
+                      className={`text-slate-400 transition-transform duration-200 ${timezoneDropdownOpen ? "rotate-180" : ""}`}
+                    />
+                  </div>
+
+                  {timezoneDropdownOpen && (
+                    <div className="absolute z-50 left-0 right-0 mt-1.5 bg-white border border-slate-200 rounded-xl shadow-2xl overflow-hidden max-h-60 flex flex-col">
+                      <div className="p-2 border-b border-slate-100 flex items-center gap-2 bg-slate-50">
+                        <FiSearch className="text-slate-400 shrink-0 ml-1" />
+                        <input
+                          type="text"
+                          value={timezoneSearchQuery}
+                          onChange={(e) =>
+                            setTimezoneSearchQuery(e.target.value)
+                          }
+                          placeholder="Search timezone..."
+                          className="w-full bg-transparent border-none outline-none text-xs text-slate-900 py-1"
+                          autoFocus
+                        />
+                      </div>
+                      <div className="overflow-y-auto flex-1 no-scrollbar">
+                        {filteredTimezones.length === 0 ? (
+                          <div className="px-4 py-3 text-xs text-slate-400 italic text-center">
+                            No timezones matched
+                          </div>
+                        ) : (
+                          filteredTimezones.map((t) => (
+                            <div
+                              key={t.value}
+                              onClick={() => handleTimezoneSelect(t.value)}
+                              className={`px-4 py-2 text-xs text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition cursor-pointer flex items-center justify-between ${selectedTimezoneValue === t.value ? "bg-slate-100 font-bold text-slate-900" : ""}`}
+                            >
+                              <span className="truncate">{t.label}</span>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  <input type="hidden" {...register("timezone")} />
+                </div>
+              </div>
+            </div>
+
+            {/* Section 3 */}
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-sm font-bold uppercase tracking-wider text-[#2B4593]">
+                  3. Residency Period
+                </h3>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-2">
+                    Start Date
+                  </label>
+                  <input
+                    type="date"
+                    {...register("residencyPeriodStart", {
+                      required: "Start date is required",
+                    })}
+                    className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-sm outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 transition"
+                  />
+                  {errors.residencyPeriodStart && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {errors.residencyPeriodStart.message}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-2">
+                    End Date
+                  </label>
+                  <input
+                    type="date"
+                    {...register("residencyPeriodEnd", {
+                      required: "End date is required",
+                      validate: (v) =>
+                        new Date(v) > new Date(periodStartValue) ||
+                        "End date must be after the start date",
+                    })}
+                    className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-sm outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 transition"
+                  />
+                  {errors.residencyPeriodEnd && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {errors.residencyPeriodEnd.message}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3.5 rounded-md font-semibold text-sm text-white bg-gradient-to-r from-blue-600 via-rose-500 to-purple-600 hover:bg-gradient-to-r hover:from-blue-700 hover:via-rose-600 hover:to-purple-700 transition-all duration-300 shadow-lg disabled:opacity-50 flex items-center justify-center cursor-pointer"
+            >
+              {loading ? (
+                <BiLoaderAlt className="animate-spin mr-2 text-xl" />
+              ) : (
+                "Create Account"
+              )}
+            </button>
+          </form>
+
+          <div className="mt-6 text-center">
+            <p className="text-sm text-gray-400">
+              Already have an account?{" "}
+              <Link
+                to="/login"
+                className="text-blue-700 font-medium hover:underline"
+              >
+                Sign In
+              </Link>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* RIGHT SIDE: Split-screen Image and Mask Overlay Restored */}
+      <div className="hidden md:block md:w-1/2 relative">
+        <img
+          src="https://www.themercuryville.com/wp-content/uploads/2024/11/%E0%B9%80%E0%B8%95%E0%B8%A3%E0%B8%B5%E0%B8%A2%E0%B8%A1%E0%B8%95%E0%B8%B1%E0%B8%A7%E0%B9%84%E0%B8%9B%E0%B8%95%E0%B9%88%E0%B8%B2%E0%B8%87%E0%B8%9B%E0%B8%A3%E0%B8%B0%E0%B9%80%E0%B8%97%E0%B8%A8%E0%B8%84%E0%B8%A3%E0%B8%B1%E0%B9%89%E0%B8%87%E0%B9%81%E0%B8%A3%E0%B8%81.jpg"
+          className="absolute inset-0 w-full h-full object-cover"
+          alt="Residency Management"
+        />
+
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-700/60 via-purple-700/60 to-red-700/60 flex flex-col justify-center px-16 text-white">
+          <h2 className="text-3xl font-semibold leading-tight max-w-md">
+            Track Your <span className="text-yellow-400">Global Stays</span>
+          </h2>
+
+          <p className="mt-4 text-lg text-white/90 max-w-md leading-relaxed">
+            Monitor your travel history, stay days, and residency status across
+            countries—all from one simple dashboard.
+          </p>
+
+          <div className="flex gap-2 mt-12">
+            <div className="h-1.5 w-8 bg-yellow-500 rounded-full"></div>
+            <div className="h-1.5 w-8 bg-white/40 rounded-full"></div>
+            <div className="h-1.5 w-8 bg-white/40 rounded-full"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

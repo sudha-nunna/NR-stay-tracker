@@ -8,7 +8,7 @@ import { useState, useRef, useEffect } from "react";
 import { BiLoaderAlt } from "react-icons/bi";
 import { FiSearch, FiChevronDown } from "react-icons/fi";
 import { FiEye, FiEyeOff } from "react-icons/fi";
-
+import backgroundimg from "../assets/registerpageimg.jpg";
 export default function Register() {
   const {
     register,
@@ -20,11 +20,12 @@ export default function Register() {
     mode: "onChange",
     reValidateMode: "onChange",
     defaultValues: {
-      timezone: "America/New_York",
-      homeCountry: "US",
-      residencyThreshold: "183",
-      residencyPeriodStart: "2026-01-01",
-      residencyPeriodEnd: "2026-12-31",
+      timezone: "",
+      homeCountry: "",
+      residencyThreshold: "",
+      residencyPeriodStart: "",
+      residencyPeriodEnd: "",
+
     },
   });
   const [showPassword, setShowPassword] = useState(false);
@@ -173,9 +174,10 @@ export default function Register() {
                   {...register("email", {
                     required: "Email address is required",
                     pattern: {
-                      value: /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/,
+                      value:
+                        /^[a-z0-9._%+-]+@[a-z]+([.-]?[a-z]+)*\.[a-z]{2,}$/i,
                       message:
-                        "Email must contain only lowercase letters (e.g. user@example.com)",
+                        "Please enter a valid email address (e.g. user@gmail.com or user@companyname.io)",
                     },
                   })}
                   className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-sm outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 transition"
@@ -344,6 +346,7 @@ export default function Register() {
                   </label>
                   <input
                     type="number"
+                    placeholder="183"
                     {...register("residencyThreshold", {
                       required: "Residency threshold is required",
                       min: { value: 1, message: "Must be greater than 0" },
@@ -492,7 +495,7 @@ export default function Register() {
       {/* RIGHT SIDE: Split-screen Image and Mask Overlay Restored */}
       <div className="hidden md:block md:w-1/2 relative">
         <img
-          src="https://www.themercuryville.com/wp-content/uploads/2024/11/%E0%B9%80%E0%B8%95%E0%B8%A3%E0%B8%B5%E0%B8%A2%E0%B8%A1%E0%B8%95%E0%B8%B1%E0%B8%A7%E0%B9%84%E0%B8%9B%E0%B8%95%E0%B9%88%E0%B8%B2%E0%B8%87%E0%B8%9B%E0%B8%A3%E0%B8%B0%E0%B9%80%E0%B8%97%E0%B8%A8%E0%B8%84%E0%B8%A3%E0%B8%B1%E0%B9%89%E0%B8%87%E0%B9%81%E0%B8%A3%E0%B8%81.jpg"
+          src={backgroundimg}
           className="absolute inset-0 w-full h-full object-cover"
           alt="Residency Management"
         />

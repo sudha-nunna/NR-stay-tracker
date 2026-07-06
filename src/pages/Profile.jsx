@@ -11,7 +11,7 @@ import { useState, useRef, useEffect } from "react";
 export default function Profile() {
   const { user, profile } = useAuth();
   const [saving, setSaving] = useState(false);
-  
+
   const {
     register,
     handleSubmit,
@@ -20,23 +20,42 @@ export default function Profile() {
     formState: { errors, isDirty },
   } = useForm({
     defaultValues: {
-      timezone: profile?.timezone || "Asia/Kolkata",
-      nativeCountry: profile?.nativeCountry || "IN",
-      fyStart: profile?.fyStart || "2026-04-01",
-      fyEnd: profile?.fyEnd || "2027-03-31",
+      timezone: profile?.timezone || "",
+      nativeCountry: profile?.nativeCountry || "",
+
+      fyStart:
+        profile?.fyStart && profile.fyStart !== "not-set"
+          ? profile.fyStart
+          : profile?.residencyPeriodStart || "",
+
+      fyEnd:
+        profile?.fyEnd && profile.fyEnd !== "not-set"
+          ? profile.fyEnd
+          : profile?.residencyPeriodEnd || "",
     },
   });
 
   // Keep internal input fields correctly aligned whenever profile context changes
   useEffect(() => {
     if (profile) {
-      setValue("nativeCountry", profile.nativeCountry || "IN");
-      setValue("timezone", profile.timezone || "Asia/Kolkata");
-      setValue("fyStart", profile.fyStart || "2026-04-01");
-      setValue("fyEnd", profile.fyEnd || "2027-03-31");
+      setValue("nativeCountry", profile.nativeCountry || "");
+      setValue("timezone", profile.timezone || "");
+
+      setValue(
+        "fyStart",
+        profile?.fyStart && profile.fyStart !== "not-set"
+          ? profile.fyStart
+          : profile?.residencyPeriodStart || "",
+      );
+
+      setValue(
+        "fyEnd",
+        profile?.fyEnd && profile.fyEnd !== "not-set"
+          ? profile.fyEnd
+          : profile?.residencyPeriodEnd || "",
+      );
     }
   }, [profile, setValue]);
-
   const selectedCountryCode = watch("nativeCountry");
   const selectedTimezoneValue = watch("timezone");
   const fyStartValue = watch("fyStart");
@@ -71,12 +90,18 @@ export default function Profile() {
 
   const filteredTimezones = timezones.filter(
     (t) =>
-      t.label.toLowerCase().includes(timezoneSearchQuery.toLowerCase().trim()) ||
+      t.label
+        .toLowerCase()
+        .includes(timezoneSearchQuery.toLowerCase().trim()) ||
       t.value.toLowerCase().includes(timezoneSearchQuery.toLowerCase().trim()),
   );
 
-  const currentCountryName = countries.find((c) => c.code === selectedCountryCode)?.name || "Select Country";
-  const currentTimezoneLabel = timezones.find((t) => t.value === selectedTimezoneValue)?.label || "Select Timezone";
+  const currentCountryName =
+    countries.find((c) => c.code === selectedCountryCode)?.name ||
+    "Select Country";
+  const currentTimezoneLabel =
+    timezones.find((t) => t.value === selectedTimezoneValue)?.label ||
+    "Select Timezone";
 
   const onUpdate = async (formData) => {
     setSaving(true);
@@ -84,7 +109,7 @@ export default function Profile() {
       // Include current threshold from existing profile data to prevent overwriting with defaults
       const payload = {
         ...formData,
-        residencyThreshold: profile?.residencyThreshold || "183"
+        residencyThreshold: profile?.residencyThreshold || "183",
       };
       await updateUserProfileInDb(user.uid, payload);
       toast.success("Profile settings updated successfully.");
@@ -102,7 +127,8 @@ export default function Profile() {
           Global Residency Configuration
         </h1>
         <p className="text-indigo-100 mt-3 text-sm md:text-base max-w-3xl">
-          Configure your primary residency jurisdiction, financial year boundaries, and parameters across the platform.
+          Configure your primary residency jurisdiction, financial year
+          boundaries, and parameters across the platform.
         </p>
       </div>
 
@@ -117,7 +143,9 @@ export default function Profile() {
               className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between cursor-pointer hover:bg-white text-slate-900 text-sm font-medium"
             >
               <span className="truncate">{currentCountryName}</span>
-              <FiChevronDown className={`text-slate-500 transition duration-200 ${countryDropdownOpen ? "rotate-180" : ""}`} />
+              <FiChevronDown
+                className={`text-slate-500 transition duration-200 ${countryDropdownOpen ? "rotate-180" : ""}`}
+              />
             </div>
 
             {countryDropdownOpen && (
@@ -143,14 +171,19 @@ export default function Profile() {
                       <div
                         key={country.code}
                         onClick={() => {
-                          setValue("nativeCountry", country.code, { shouldValidate: true, shouldDirty: true });
+                          setValue("nativeCountry", country.code, {
+                            shouldValidate: true,
+                            shouldDirty: true,
+                          });
                           setCountryDropdownOpen(false);
                           setCountrySearchQuery("");
                         }}
                         className={`px-4 py-3 hover:bg-indigo-50 cursor-pointer flex justify-between items-center text-sm text-slate-700 transition ${selectedCountryCode === country.code ? "bg-slate-50 font-bold text-slate-900" : ""}`}
                       >
                         <span>{country.name}</span>
-                        <span className="text-slate-400 font-mono text-xs uppercase">{country.code}</span>
+                        <span className="text-slate-400 font-mono text-xs uppercase">
+                          {country.code}
+                        </span>
                       </div>
                     ))
                   )}
@@ -169,7 +202,9 @@ export default function Profile() {
               className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between cursor-pointer hover:bg-white text-slate-900 text-sm font-medium"
             >
               <span className="truncate">{currentTimezoneLabel}</span>
-              <FiChevronDown className={`text-slate-500 transition duration-200 ${timezoneDropdownOpen ? "rotate-180" : ""}`} />
+              <FiChevronDown
+                className={`text-slate-500 transition duration-200 ${timezoneDropdownOpen ? "rotate-180" : ""}`}
+              />
             </div>
 
             {timezoneDropdownOpen && (
@@ -195,7 +230,10 @@ export default function Profile() {
                       <div
                         key={timezone.value}
                         onClick={() => {
-                          setValue("timezone", timezone.value, { shouldValidate: true, shouldDirty: true });
+                          setValue("timezone", timezone.value, {
+                            shouldValidate: true,
+                            shouldDirty: true,
+                          });
                           setTimezoneDropdownOpen(false);
                           setTimezoneSearchQuery("");
                         }}
@@ -218,9 +256,16 @@ export default function Profile() {
               </label>
               <input
                 type="date"
-                {...register("fyStart", { required: true })}
+                {...register("fyStart", {
+                  required: "Financial Year Start is required",
+                })}
                 className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 text-slate-900 rounded-lg text-sm outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 transition"
               />
+              {errors.fyStart && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.fyStart.message}
+                </p>
+              )}
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-2">
@@ -229,13 +274,15 @@ export default function Profile() {
               <input
                 type="date"
                 {...register("fyEnd", {
-                  required: true,
-                  validate: (v) => new Date(v) > new Date(fyStartValue) || "Must conclude sequentially following target start checkpoint",
+                  required: "Financial Year End is required",
+                  validate: (v) =>
+                    new Date(v) > new Date(fyStartValue) ||
+                    "Financial Year End must be after Financial Year Start",
                 })}
                 className={`w-full px-4 py-2.5 bg-slate-50 border text-slate-900 rounded-lg text-sm outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 transition ${errors.fyEnd ? "border-red-500" : "border-slate-200"}`}
               />
               {errors.fyEnd && (
-                <p className="text-red-500 text-[10px] mt-1 font-bold tracking-wide">
+                <p className="text-red-500 text-xs mt-1">
                   {errors.fyEnd.message}
                 </p>
               )}

@@ -1,4 +1,3 @@
-
 import { useEffect, useState, useRef } from "react";
 import { useAuth } from "../context/AuthContext";
 import TravelForm from "../components/tracker/TravelForm";
@@ -22,11 +21,12 @@ export default function TravelHistory() {
   const [showForm, setShowForm] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
   const [currentCountry, setCurrentCountry] = useState("");
-  
+
   // Strict thread constraint handling switch variable flag to kill recursion loops
   const isCurrentlyTracking = useRef(false);
 
   useEffect(() => {
+    window.scrollTo(0, 0);
     if (!user) return;
 
     const unsubscribe = subscribeToTravelRecords(
@@ -95,28 +95,30 @@ export default function TravelHistory() {
     );
   }
 
-
   const totalRecordsCount = records.length;
-  
-  const uniqueCountriesTracked = records.length > 0 
-    ? new Set(records.flatMap((r) => [r.fromCountry, r.toCountry]).filter(Boolean)).size 
-    : 0;
 
-  const currentFootprintDisplay = records.length > 0 
-    ? (currentCountry || records[0]?.toCountry || "Locating...") 
-    : "No History Saved";
+  const uniqueCountriesTracked =
+    records.length > 0
+      ? new Set(
+          records.flatMap((r) => [r.fromCountry, r.toCountry]).filter(Boolean),
+        ).size
+      : 0;
+
+  const currentFootprintDisplay =
+    records.length > 0
+      ? currentCountry || records[0]?.toCountry || "Locating..."
+      : "No History Saved";
 
   return (
     <div className="space-y-8 relative">
       {/* HEADER */}
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">
-            Global Movement History
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">
+            Travel History
           </h1>
-          <p className="mt-2 text-slate-500">
-            Automatically monitoring and logging border-crossings via global
-            background sensors.
+          <p className="mt-1 sm:mt-2 text-xs sm:text-sm text-slate-500">
+            Review your travel timeline and residency records.
           </p>
         </div>
 
@@ -125,7 +127,7 @@ export default function TravelHistory() {
             setEditingRecord(null);
             setShowForm(true);
           }}
-          className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer"
+          className="flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-xl shadow-md text-xs sm:text-sm transition-all duration-300 cursor-pointer w-full sm:w-auto shrink-0"
         >
           <FiPlus />
           Add Travel Record
@@ -133,11 +135,11 @@ export default function TravelHistory() {
       </div>
 
       {/* STATS  */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
         <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-slate-500">Total Records</p>
+              <p className="text-base text-slate-500">Total Records</p>
               <h2 className="text-4xl font-bold text-slate-900 mt-2">
                 {totalRecordsCount}
               </h2>
@@ -151,7 +153,7 @@ export default function TravelHistory() {
         <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-slate-500">Countries Tracked</p>
+              <p className="text-base text-slate-500">Countries Tracked</p>
               <h2 className="text-4xl font-bold text-slate-900 mt-2">
                 {uniqueCountriesTracked}
               </h2>
@@ -165,7 +167,7 @@ export default function TravelHistory() {
         <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-slate-500">Current Footprint</p>
+              <p className="text-base text-slate-500">Current Footprint</p>
               <h2 className="text-xl font-bold text-slate-900 mt-2 truncate">
                 {currentFootprintDisplay}
               </h2>
@@ -180,17 +182,16 @@ export default function TravelHistory() {
       {/* AUTOMATED TABLE CONTAINER */}
       <div className="w-full">
         <div className="bg-white border border-slate-200 rounded-3xl shadow-sm">
-          <div className="p-5 border-b border-slate-200 flex items-center justify-between">
+          <div className="p-4 sm:p-5 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h2 className="text-lg font-semibold text-slate-900">
-                Verified Travel Logs
+              <h2 className="text-base sm:text-lg font-semibold text-slate-900">
+                Travel Records
               </h2>
-              <p className="text-sm text-slate-500 mt-1">
-                Authentic structural migration timeline records compiled
-                instantly.
+              <p className="text-xs sm:text-sm text-slate-500 mt-0.5 sm:mt-1">
+                 Your complete travel history in one place.
               </p>
             </div>
-            <span className="px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-sm font-medium">
+            <span className="px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 text-[11px] sm:text-xs font-semibold self-start sm:self-auto shrink-0">
               {records.length} Check-ins
             </span>
           </div>

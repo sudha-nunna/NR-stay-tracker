@@ -1,4 +1,3 @@
-
 import { FiGlobe, FiTrendingUp, FiCalendar, FiShield } from 'react-icons/fi';
 
 export default function SummaryCards({ calculation, profile, totalRecordsLength = 0 }) {

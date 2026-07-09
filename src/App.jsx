@@ -22,7 +22,7 @@ export default function App() {
           toastOptions={{
             duration: 2500,
             className:
-              "bg-white text-slate-800 border border-slate-200 rounded-xl shadow-lg px-4 py-3 text-sm font-medium",
+              "bg-white text-slate-800 border border-slate-200 rounded-xl shadow-lg px-4 py-3 text-base font-medium",
             success: {
               className:
                 "bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-xl shadow-lg",

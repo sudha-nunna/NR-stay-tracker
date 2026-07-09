@@ -25,6 +25,11 @@
     min-height: 100vh;
     background-color: #f8fafc;
   }
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
 }
 
 .no-scrollbar::-webkit-scrollbar {
@@ -59,4 +64,9 @@
 }
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.3);
+}
+/* Add to your global CSS file for zero-delay mobile tap execution */
+.grid div {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }

@@ -31,7 +31,7 @@ export default function MonthlyBarChart({ records, homeCountryCode = "US" }) {
   return (
     <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xl h-[300px] flex flex-col">
       <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-4">
-        Monthly Inflow Stay Metrics
+        Monthly Stay in Home Country
       </h3>
       <div className="flex-1 min-h-0">
         <ResponsiveContainer width="100%" height="100%">

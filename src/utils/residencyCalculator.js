@@ -2,16 +2,24 @@ import { parseISO, isWithinInterval, differenceInDays } from "date-fns";
 
 /**
  * Country-Agnostic Global Residency Calculation Engine
- * Computes precise presence metrics against user-configured dynamic rules.
+ * Computes precise presence metrics with explicit single-day override priority resolution.
  */
 export const calculateResidencyStatus = (travelRecords, profile) => {
-  // FIX: Match the exact fallback priority used by the UI components
-  const homeCountry = profile?.homeCountry || profile?.homeCountryCode;
+  // Aligned to match all key structures perfectly across profile and dashboard variants
+  const homeCountry = (
+    profile?.nativeCountry ||
+    profile?.homeCountry ||
+    profile?.homeCountryCode ||
+    "US"
+  ).toUpperCase();
   const threshold = parseInt(profile?.residencyThreshold || "183", 10);
+
   const validTravelRecords = Array.isArray(travelRecords)
     ? travelRecords.filter(
         (record) =>
-          record?.arrivalDate && record?.departureDate && record?.toCountry,
+          record?.arrivalDate &&
+          record?.departureDate &&
+          (record?.toCountry || record?.fromCountry),
       )
     : [];
 
@@ -28,77 +36,135 @@ export const calculateResidencyStatus = (travelRecords, profile) => {
     };
   }
 
-  // Dynamic or standard fiscal year tracking boundary parameters
-  const periodStart =
-    profile?.residencyPeriodStart ||
-    profile?.fyStart ||
-    validTravelRecords[validTravelRecords.length - 1]?.arrivalDate;
-  const periodEnd =
-    profile?.residencyPeriodEnd ||
-    profile?.fyEnd ||
-    validTravelRecords[0]?.arrivalDate;
+  // Handle cross-cutting field conversions safely across date schemas
+  const rawStart = profile?.residencyPeriodStart || profile?.fyStart;
+  const rawEnd = profile?.residencyPeriodEnd || profile?.fyEnd;
 
-  if (!periodStart || !periodEnd) {
-    return {
-      status: "Non-Resident",
-      homeDays: 0,
-      outsideDays: 0,
-      progressPercentage: 0,
-      daysRemaining: threshold,
-      warning: null,
-      homeCountryCode: homeCountry,
-    };
+  // Re-verify string parsing arrays or fall back directly to record boundaries
+  let periodStart = rawStart;
+  let periodEnd = rawEnd;
+
+  // Format shorthand 'MM-DD' back to implicit calendar year markers to avoid invalid range checks
+  const currentYear = new Date().getFullYear();
+  if (periodStart && periodStart.length === 5 && periodStart.includes("-")) {
+    periodStart = `${currentYear}-${periodStart}`;
+  }
+  if (periodEnd && periodEnd.length === 5 && periodEnd.includes("-")) {
+    periodEnd = `${currentYear}-${periodEnd}`;
+  }
+
+  // Final fallback initialization matching your fallback structural architecture
+  if (!periodStart || periodStart === "not-set") {
+    periodStart = `${currentYear}-01-01`;
+  }
+  if (!periodEnd || periodEnd === "not-set") {
+    periodEnd = `${currentYear}-12-31`;
   }
 
   const start = parseISO(periodStart);
   const end = parseISO(periodEnd);
-  const totalPeriodDays = differenceInDays(end, start) + 1;
+
+  // Separate records into base background segments and fine single-day overrides
+  const overrides = new Map();
+  const backgroundSegments = [];
+
+  validTravelRecords.forEach((record) => {
+    const depStr = record.departureDate.split("T")[0];
+    const arrStr = record.arrivalDate.split("T")[0];
+
+    if (
+      depStr === arrStr &&
+      (record.purpose === "Calendar Check-In" ||
+        record.purpose === "Calendar Check-Out")
+    ) {
+      overrides.set(depStr, record);
+    } else {
+      backgroundSegments.push(record);
+    }
+  });
 
   const uniqueHomeDays = new Set();
   const uniqueForeignDays = new Set();
 
-  validTravelRecords.forEach((record) => {
-    if (!record.departureDate || !record.arrivalDate) return;
+  // Evaluate day-by-day across tracking boundaries to ensure accurate override prioritization
+  let currentPtr = new Date(start);
+  const endLimit = new Date(end);
 
-    const dep = parseISO(record.departureDate);
-    const arr = parseISO(record.arrivalDate);
+  while (currentPtr <= endLimit) {
+    const dayKey = currentPtr.toISOString().split("T")[0];
 
-    let currentPtr = new Date(dep);
+    try {
+      // PRIORITY 1: Check if an explicit calendar override is present for this exact date
+      if (overrides.has(dayKey)) {
+        const record = overrides.get(dayKey);
+        const targetCountry = (
+          record.toCountry ||
+          record.fromCountry ||
+          homeCountry
+        ).toUpperCase();
 
-    while (currentPtr <= arr) {
-      const dayKey = currentPtr.toISOString().split("T")[0];
-      if (isWithinInterval(currentPtr, { start, end })) {
-        if (record.toCountry === homeCountry) {
+        if (targetCountry === homeCountry) {
           uniqueHomeDays.add(dayKey);
         } else {
           uniqueForeignDays.add(dayKey);
         }
       }
-      currentPtr.setDate(currentPtr.getDate() + 1);
+      // PRIORITY 2: Fall back to wide-range background segments if no manual overlay exists
+      else {
+        const matchingParent = backgroundSegments.find((record) => {
+          const depStr = record.departureDate.split("T")[0];
+          const arrStr = record.arrivalDate.split("T")[0];
+          return dayKey >= depStr && dayKey <= arrStr;
+        });
+
+        if (matchingParent) {
+          const targetCountry = (
+            matchingParent.toCountry ||
+            matchingParent.fromCountry ||
+            homeCountry
+          ).toUpperCase();
+
+          if (targetCountry === homeCountry) {
+            uniqueHomeDays.add(dayKey);
+          } else {
+            uniqueForeignDays.add(dayKey);
+          }
+        }
+      }
+    } catch (err) {
+      // Boundary fallback protection block
     }
-  });
 
-  const homeDays = uniqueHomeDays.size;
-  const outsideDays = uniqueForeignDays.size;
+    currentPtr.setDate(currentPtr.getDate() + 1);
+  }
 
-  // Compute percentage progress toward meeting the target threshold
+const allDays = new Set([
+  ...uniqueHomeDays,
+  ...uniqueForeignDays,
+]);
+
+const homeDays = uniqueHomeDays.size;
+const outsideDays = uniqueForeignDays.size;
+const totalDays = allDays.size;
+
+  // Compute percentage progress toward meeting target baseline thresholds
   const progressPercentage = Math.min(
     Math.round((homeDays / threshold) * 100),
     100,
   );
   const daysRemaining = Math.max(threshold - homeDays, 0);
 
-  // Dynamic status classifications based on configurable milestone completion
-  let status = "Non-Resident";
+  // Status mappings logic matching your existing business specifications
+  let status = "Not Started";
+
   if (homeDays >= threshold) {
-    status = "Resident";
+    status = "Residency Achieved";
   } else if (homeDays >= Math.floor(threshold * 0.5)) {
-    status = "Temporary Resident";
+    status = "On Track";
   } else if (homeDays > 0) {
-    status = "Long-Term Visitor";
+    status = "In Progress";
   }
 
-  // Compliance alerting system based on custom parameters
   let warning = null;
   if (daysRemaining > 0 && daysRemaining <= 15) {
     warning = `Compliance Alert: Only ${daysRemaining} day(s) remaining to solidify your configured ${threshold}-day status rule for ${homeCountry}.`;
@@ -107,13 +173,14 @@ export const calculateResidencyStatus = (travelRecords, profile) => {
   }
 
   return {
-    status,
-    homeDays,
-    indiaDays: homeDays,
-    outsideDays,
-    foreignDays: outsideDays,
-    progressPercentage,
-    daysRemaining,
-    warning,
-  };
+  status,
+  homeDays,
+  indiaDays: homeDays,
+  outsideDays,
+  foreignDays: outsideDays,
+  totalDays,
+  progressPercentage,
+  daysRemaining,
+  warning,
+};
 };

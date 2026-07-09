@@ -15,7 +15,9 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
-
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
   const getFriendlyLoginMessage = (error) => {
     if (error?.code === "auth/invalid-email") {
       return "Please enter a valid email address.";
@@ -104,7 +106,7 @@ export default function Login() {
             <h2 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-blue-600 via-purple-600 to-red-500 bg-clip-text text-transparent sm:text-4xl">
               Identity Gateway
             </h2>
-            <p className="mt-2 text-sm text-slate-500 font-medium">
+            <p className="mt-2 text-base text-slate-500 font-medium">
               Log in to track tax residency records
             </p>
           </div>
@@ -124,7 +126,7 @@ export default function Login() {
                       "Please enter a valid email address (e.g. user@gmail.com or user@companyname.io)",
                   },
                 })}
-                className={`w-full px-4 py-2 bg-slate-50 border rounded-lg text-slate-900 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition text-sm ${errors.email ? "border-red-500" : "border-slate-200"}`}
+                className={`w-full px-4 py-2 bg-slate-50 border rounded-lg text-slate-900 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition text-base ${errors.email ? "border-red-500" : "border-slate-200"}`}
                 placeholder="name@corporate.com"
               />
               {errors.email && (
@@ -145,7 +147,7 @@ export default function Login() {
                   {...register("password", {
                     required: "Password is required",
                   })}
-                  className={`w-full px-4 py-2 pr-12 bg-slate-50 border rounded-lg text-slate-900 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition text-sm [&::-ms-reveal]:hidden [&::-ms-clear]:hidden ${errors.password ? "border-red-500" : "border-slate-200"}`}
+                  className={`w-full px-4 py-2 pr-12 bg-slate-50 border rounded-lg text-slate-900 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition text-base [&::-ms-reveal]:hidden [&::-ms-clear]:hidden ${errors.password ? "border-red-500" : "border-slate-200"}`}
                   placeholder="••••••••"
                 />
                 <button
@@ -176,7 +178,7 @@ export default function Login() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3.5 rounded-md font-semibold text-sm text-white bg-gradient-to-r from-blue-600 via-rose-500 to-purple-600 hover:bg-gradient-to-r hover:from-blue-700 hover:via-rose-600 hover:to-purple-700 active:scale-[0.99] transition-all duration-300 shadow-lg disabled:opacity-50 flex items-center justify-center cursor-pointer"
+              className="w-full py-3.5 rounded-md font-semibold text-base text-white bg-gradient-to-r from-blue-600 via-rose-500 to-purple-600 hover:bg-gradient-to-r hover:from-blue-700 hover:via-rose-600 hover:to-purple-700 active:scale-[0.99] transition-all duration-300 shadow-lg disabled:opacity-50 flex items-center justify-center cursor-pointer"
             >
               {loading ? (
                 <BiLoaderAlt className="animate-spin mr-2 text-xl" />

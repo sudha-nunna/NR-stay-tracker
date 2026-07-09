@@ -1,6 +1,13 @@
 import { useLocation } from "react-router-dom";
 import { NavLink } from "react-router-dom";
-import { FiGrid, FiActivity, FiPieChart, FiUser, FiGlobe, FiX } from "react-icons/fi";
+import {
+  FiGrid,
+  FiActivity,
+  FiPieChart,
+  FiUser,
+  FiGlobe,
+  FiX,
+} from "react-icons/fi";
 
 export default function Sidebar({ isOpen, setIsOpen }) {
   const location = useLocation();
@@ -32,7 +39,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
     <>
       {/* Background Dim Backdrop Overlay Panel specifically for Mobile Interactivity screen states */}
       {isOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/40 z-40 md:hidden backdrop-blur-xs transition-opacity duration-300"
           onClick={() => setIsOpen(false)}
         />
@@ -47,7 +54,10 @@ export default function Sidebar({ isOpen, setIsOpen }) {
         <div className="h-20 px-6 flex items-center justify-between border-b border-white/10 shrink-0">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur-sm border border-white/20 flex items-center justify-center shadow-lg">
-              <FiGlobe className="text-white text-2xl animate-spin" style={{ animationDuration: '30s' }} />
+              <FiGlobe
+                className="text-white text-2xl animate-spin"
+                style={{ animationDuration: "30s" }}
+              />
             </div>
 
             <div>
@@ -61,7 +71,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
           </div>
 
           {/* Close Menu Button inside sidebar overlay structure for layout breakpoints context checks */}
-          <button 
+          <button
             onClick={() => setIsOpen(false)}
             className="text-white text-xl md:hidden p-1 rounded-lg bg-white/10 hover:bg-white/20 cursor-pointer"
           >
@@ -106,9 +116,12 @@ export default function Sidebar({ isOpen, setIsOpen }) {
         {/* Bottom Information Segment Panel */}
         <div className="p-4 border-t border-white/10 shrink-0">
           <div className="rounded-xl bg-white/5 p-4 border border-white/10">
-            <h3 className="text-white text-sm font-semibold">Residency Tracking</h3>
+            <h3 className="text-white text-base font-semibold">
+              Residency Tracking
+            </h3>
             <p className="text-slate-400 text-xs mt-1 leading-relaxed">
-              Track global travel movements and jurisdictional residency rules efficiently.
+              Track global travel movements and jurisdictional residency rules
+              efficiently.
             </p>
           </div>
         </div>

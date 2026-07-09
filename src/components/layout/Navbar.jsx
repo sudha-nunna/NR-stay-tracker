@@ -31,18 +31,20 @@ export default function Navbar({ onMenuToggle }) {
           Global Residency Tracker
         </span>
       </div>
-      
+
       {/* User Information & Session Action Controls */}
       <div className="flex items-center gap-3 sm:gap-4">
         {profile && (
-          <div className="hidden sm:flex items-center gap-2 text-white bg-white/10 border border-white/10 px-3 py-1.5 rounded-lg text-sm font-semibold tracking-wide">
+          <div className="hidden sm:flex items-center gap-2 text-white bg-white/10 border border-white/10 px-3 py-1.5 rounded-lg text-base font-semibold tracking-wide">
             <FiUser className="text-cyan-500 rounded-full bg-blue-100 p-0.5 text-base" />
-            <span className="truncate max-w-[120px] md:max-w-none">{profile.email}</span>
+            <span className="truncate max-w-[120px] md:max-w-none">
+              {profile.email}
+            </span>
           </div>
         )}
-        <button 
-          onClick={handleLogout} 
-          className="bg-red-500 hover:bg-red-600 text-white text-xs sm:text-sm font-bold px-3 sm:px-4 py-2 rounded-xl transition-all flex items-center gap-1.5 shadow-md hover:scale-[1.02] cursor-pointer"
+        <button
+          onClick={handleLogout}
+          className="bg-red-500 hover:bg-red-600 text-white text-xs sm:text-base font-bold px-3 sm:px-4 py-2 rounded-xl transition-all flex items-center gap-1.5 shadow-md hover:scale-[1.02] cursor-pointer"
         >
           <FiLogOut />
           <span className="hidden xs:inline">Sign Out</span>

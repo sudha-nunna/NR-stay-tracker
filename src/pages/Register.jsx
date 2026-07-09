@@ -4,11 +4,13 @@ import toast from "react-hot-toast";
 import { registerUser } from "../firebase/authService";
 import { countries } from "../utils/countries";
 import { timezones } from "../utils/timezoneList";
+import { GLOBAL_MONTHS, getDaysInMonth } from "../utils/dateHelpers"; // Shared imports
 import { useState, useRef, useEffect } from "react";
 import { BiLoaderAlt } from "react-icons/bi";
 import { FiSearch, FiChevronDown } from "react-icons/fi";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import backgroundimg from "../assets/registerpageimg.jpg";
+
 export default function Register() {
   const {
     register,
@@ -25,7 +27,6 @@ export default function Register() {
       residencyThreshold: "",
       residencyPeriodStart: "",
       residencyPeriodEnd: "",
-
     },
   });
   const [showPassword, setShowPassword] = useState(false);
@@ -48,6 +49,29 @@ export default function Register() {
   const countryRef = useRef(null);
   const timezoneRef = useRef(null);
 
+  // Month-Day Custom Picker Local States
+  const currentYear = new Date().getFullYear(); // Fresh tracking per calendar year
+  const [startMonth, setStartMonth] = useState("01");
+  const [startDay, setStartDay] = useState("01");
+  const [endMonth, setEndMonth] = useState("12");
+  const [endDay, setEndDay] = useState("31");
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+  // Sync Start Month/Day custom state to React Hook Form text strings
+  useEffect(() => {
+    if (startMonth && startDay) {
+      setValue("residencyPeriodStart", `${currentYear}-${startMonth}-${startDay}`, { shouldValidate: true });
+    }
+  }, [startMonth, startDay, setValue, currentYear]);
+
+  // Sync End Month/Day custom state to React Hook Form text strings
+  useEffect(() => {
+    if (endMonth && endDay) {
+      setValue("residencyPeriodEnd", `${currentYear}-${endMonth}-${endDay}`, { shouldValidate: true });
+    }
+  }, [endMonth, endDay, setValue, currentYear]);
+
   // Close dropdowns on outside clicks
   useEffect(() => {
     function handleClickOutside(event) {
@@ -65,7 +89,6 @@ export default function Register() {
   // Filter systems dynamically based on input match conditions
   const filteredCountries = countries.filter((c) => {
     const query = countrySearchQuery.toLowerCase().trim();
-
     return (
       c.name.toLowerCase().includes(query) ||
       c.code.toLowerCase().includes(query)
@@ -74,7 +97,6 @@ export default function Register() {
 
   const filteredTimezones = timezones.filter((t) => {
     const query = timezoneSearchQuery.toLowerCase().trim();
-
     return (
       t.label.toLowerCase().includes(query) ||
       t.value.toLowerCase().includes(query)
@@ -125,15 +147,12 @@ export default function Register() {
         case "auth/email-already-in-use":
           toast.error("An account with this email already exists");
           break;
-
         case "auth/invalid-email":
           toast.error("Please enter a valid email address");
           break;
-
         case "auth/weak-password":
           toast.error("Password is too weak");
           break;
-
         default:
           toast.error("Registration failed. Please try again");
       }
@@ -151,7 +170,7 @@ export default function Register() {
             <h2 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-blue-600 via-purple-600 to-red-500 bg-clip-text text-transparent sm:text-4xl">
               Create Your Account
             </h2>
-            <p className="mt-2 text-sm text-slate-500 font-medium">
+            <p className="mt-2 text-base text-slate-500 font-medium">
               Track Your Stay Days Easily
             </p>
           </div>
@@ -160,7 +179,7 @@ export default function Register() {
             {/* Section 1 */}
             <div className="space-y-4">
               <div className="inline-block">
-                <h3 className="text-sm font-bold uppercase tracking-wider text-[#2B4593]">
+                <h3 className="text-base font-bold uppercase tracking-wider text-[#2B4593]">
                   1. Account Details
                 </h3>
               </div>
@@ -174,13 +193,12 @@ export default function Register() {
                   {...register("email", {
                     required: "Email address is required",
                     pattern: {
-                      value:
-                        /^[a-z0-9._%+-]+@[a-z]+([.-]?[a-z]+)*\.[a-z]{2,}$/i,
+                      value: /^[a-z0-9._%+-]+@[a-z]+([.-]?[a-z]+)*\.[a-z]{2,}$/i,
                       message:
                         "Please enter a valid email address (e.g. user@gmail.com or user@companyname.io)",
                     },
                   })}
-                  className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-sm outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 transition"
+                  className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-base outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 transition"
                   placeholder="name@example.com"
                 />
                 {errors.email && (
@@ -203,18 +221,15 @@ export default function Register() {
                         required: "Password is required",
                         minLength: {
                           value: 8,
-                          message:
-                            "Password must be at least 8 characters long",
+                          message: "Password must be at least 8 characters long",
                         },
                         pattern: {
-                          value:
-                            /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/,
+                          value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/,
                           message:
                             "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character",
                         },
                       })}
-                      // FIXED: Added prefix syntax `[&::-ms-reveal]:hidden` to securely suppress the native browser reveal icon
-                      className="w-full px-4 py-2 pr-12 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-sm outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 transition [&::-ms-reveal]:hidden [&::-ms-clear]:hidden"
+                      className="w-full px-4 py-2 pr-12 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-base outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 transition [&::-ms-reveal]:hidden [&::-ms-clear]:hidden"
                       placeholder="••••••••"
                     />
                     <button
@@ -222,11 +237,7 @@ export default function Register() {
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700 cursor-pointer z-10"
                     >
-                      {showPassword ? (
-                        <FiEyeOff size={18} />
-                      ) : (
-                        <FiEye size={18} />
-                      )}
+                      {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
                     </button>
                   </div>
                   {errors.password && (
@@ -249,22 +260,15 @@ export default function Register() {
                         validate: (v) =>
                           v === passwordValue || "Passwords do not match",
                       })}
-                      // FIXED: Added prefix syntax `[&::-ms-reveal]:hidden` to securely suppress the native browser reveal icon
-                      className="w-full px-4 py-2 pr-12 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-sm outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 transition [&::-ms-reveal]:hidden [&::-ms-clear]:hidden"
+                      className="w-full px-4 py-2 pr-12 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-base outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 transition [&::-ms-reveal]:hidden [&::-ms-clear]:hidden"
                       placeholder="••••••••"
                     />
                     <button
                       type="button"
-                      onClick={() =>
-                        setShowConfirmPassword(!showConfirmPassword)
-                      }
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700 cursor-pointer z-10"
                     >
-                      {showConfirmPassword ? (
-                        <FiEyeOff size={18} />
-                      ) : (
-                        <FiEye size={18} />
-                      )}
+                      {showConfirmPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
                     </button>
                   </div>
                   {errors.confirmPassword && (
@@ -279,7 +283,7 @@ export default function Register() {
             {/* Section 2 */}
             <div className="space-y-4">
               <div>
-                <h3 className="text-sm font-bold uppercase tracking-wider text-[#2B4593]">
+                <h3 className="text-base font-bold uppercase tracking-wider text-[#2B4593]">
                   2. Residency Settings
                 </h3>
               </div>
@@ -292,7 +296,7 @@ export default function Register() {
                   </label>
                   <div
                     onClick={() => setCountryDropdownOpen(!countryDropdownOpen)}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-sm flex items-center justify-between cursor-pointer hover:bg-white transition"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-base flex items-center justify-between cursor-pointer hover:bg-white transition"
                   >
                     <span className="truncate">{currentCountryName}</span>
                     <FiChevronDown
@@ -307,9 +311,7 @@ export default function Register() {
                         <input
                           type="text"
                           value={countrySearchQuery}
-                          onChange={(e) =>
-                            setCountrySearchQuery(e.target.value)
-                          }
+                          onChange={(e) => setCountrySearchQuery(e.target.value)}
                           placeholder="Search country..."
                           className="w-full bg-transparent border-none outline-none text-xs text-slate-900 py-1"
                           autoFocus
@@ -337,7 +339,17 @@ export default function Register() {
                       </div>
                     </div>
                   )}
-                  <input type="hidden" {...register("homeCountry")} />
+                  <input
+                    type="hidden"
+                    {...register("homeCountry", {
+                      required: "Home Country is required",
+                    })}
+                  />
+                  {errors.homeCountry && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {errors.homeCountry.message}
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -352,7 +364,7 @@ export default function Register() {
                       min: { value: 1, message: "Must be greater than 0" },
                       max: { value: 365, message: "Cannot exceed 365 days" },
                     })}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-sm outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 transition"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-base outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 transition"
                   />
                   {errors.residencyThreshold && (
                     <p className="text-red-500 text-xs mt-1">
@@ -367,10 +379,8 @@ export default function Register() {
                     Your Time Zone
                   </label>
                   <div
-                    onClick={() =>
-                      setTimezoneDropdownOpen(!timezoneDropdownOpen)
-                    }
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-sm flex items-center justify-between cursor-pointer hover:bg-white transition"
+                    onClick={() => setTimezoneDropdownOpen(!timezoneDropdownOpen)}
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-base flex items-center justify-between cursor-pointer hover:bg-white transition"
                   >
                     <span className="truncate">{currentTimezoneLabel}</span>
                     <FiChevronDown
@@ -385,9 +395,7 @@ export default function Register() {
                         <input
                           type="text"
                           value={timezoneSearchQuery}
-                          onChange={(e) =>
-                            setTimezoneSearchQuery(e.target.value)
-                          }
+                          onChange={(e) => setTimezoneSearchQuery(e.target.value)}
                           placeholder="Search timezone..."
                           className="w-full bg-transparent border-none outline-none text-xs text-slate-900 py-1"
                           autoFocus
@@ -412,54 +420,96 @@ export default function Register() {
                       </div>
                     </div>
                   )}
-                  <input type="hidden" {...register("timezone")} />
+                  <input
+                    type="hidden"
+                    {...register("timezone", {
+                      required: "Timezone is required",
+                    })}
+                  />
+                  {errors.timezone && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {errors.timezone.message}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
 
-            {/* Section 3 */}
+            {/* Section 3: Refactored Day-Month Range Pickers */}
             <div className="space-y-4">
               <div>
-                <h3 className="text-sm font-bold uppercase tracking-wider text-[#2B4593]">
+                <h3 className="text-base font-bold uppercase tracking-wider text-[#2B4593]">
                   3. Residency Period
                 </h3>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Start Date Selection Panel */}
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-2">
-                    Start Date
+                    Start (Month & Day)
                   </label>
-                  <input
-                    type="date"
-                    {...register("residencyPeriodStart", {
-                      required: "Start date is required",
-                    })}
-                    className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-sm outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 transition"
-                  />
+                  <div className="flex gap-2">
+                    <select
+                      value={startMonth}
+                      onChange={(e) => setStartMonth(e.target.value)}
+                      className="w-1/2 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-base outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 transition"
+                    >
+                      {GLOBAL_MONTHS.map((m) => (
+                        <option key={m.value} value={m.value}>{m.label}</option>
+                      ))}
+                    </select>
+                    <select
+                      value={startDay}
+                      onChange={(e) => setStartDay(e.target.value)}
+                      className="w-1/2 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-base outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 transition"
+                    >
+                      {getDaysInMonth(startMonth).map((d) => (
+                        <option key={d} value={d}>{d}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <input type="hidden" {...register("residencyPeriodStart", { required: "Start Date is required" })} />
                   {errors.residencyPeriodStart && (
-                    <p className="text-red-500 text-xs mt-1">
-                      {errors.residencyPeriodStart.message}
-                    </p>
+                    <p className="text-red-500 text-xs mt-1">{errors.residencyPeriodStart.message}</p>
                   )}
                 </div>
+
+                {/* End Date Selection Panel */}
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-2">
-                    End Date
+                    End (Month & Day)
                   </label>
-                  <input
-                    type="date"
-                    {...register("residencyPeriodEnd", {
-                      required: "End date is required",
-                      validate: (v) =>
-                        new Date(v) > new Date(periodStartValue) ||
-                        "End date must be after the start date",
-                    })}
-                    className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-sm outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 transition"
+                  <div className="flex gap-2">
+                    <select
+                      value={endMonth}
+                      onChange={(e) => setEndMonth(e.target.value)}
+                      className="w-1/2 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-base outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 transition"
+                    >
+                      {GLOBAL_MONTHS.map((m) => (
+                        <option key={m.value} value={m.value}>{m.label}</option>
+                      ))}
+                    </select>
+                    <select
+                      value={endDay}
+                      onChange={(e) => setEndDay(e.target.value)}
+                      className="w-1/2 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-base outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 transition"
+                    >
+                      {getDaysInMonth(endMonth).map((d) => (
+                        <option key={d} value={d}>{d}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <input 
+                    type="hidden" 
+                    {...register("residencyPeriodEnd", { 
+                      required: "End Date is required",
+                      validate: {
+                        afterStart: (v) => new Date(v) > new Date(periodStartValue) || "End date must be after the start date"
+                      }
+                    })} 
                   />
                   {errors.residencyPeriodEnd && (
-                    <p className="text-red-500 text-xs mt-1">
-                      {errors.residencyPeriodEnd.message}
-                    </p>
+                    <p className="text-red-500 text-xs mt-1">{errors.residencyPeriodEnd.message}</p>
                   )}
                 </div>
               </div>
@@ -468,7 +518,7 @@ export default function Register() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3.5 rounded-md font-semibold text-sm text-white bg-gradient-to-r from-blue-600 via-rose-500 to-purple-600 hover:bg-gradient-to-r hover:from-blue-700 hover:via-rose-600 hover:to-purple-700 transition-all duration-300 shadow-lg disabled:opacity-50 flex items-center justify-center cursor-pointer"
+              className="w-full py-3.5 rounded-md font-semibold text-base text-white bg-gradient-to-r from-blue-600 via-rose-500 to-purple-600 hover:bg-gradient-to-r hover:from-blue-700 hover:via-rose-600 hover:to-purple-700 transition-all duration-300 shadow-lg disabled:opacity-50 flex items-center justify-center cursor-pointer"
             >
               {loading ? (
                 <BiLoaderAlt className="animate-spin mr-2 text-xl" />
@@ -479,7 +529,7 @@ export default function Register() {
           </form>
 
           <div className="mt-6 text-center">
-            <p className="text-sm text-gray-400">
+            <p className="text-base text-gray-400">
               Already have an account?{" "}
               <Link
                 to="/login"

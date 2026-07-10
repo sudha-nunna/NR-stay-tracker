@@ -2,7 +2,7 @@ import { useForm } from "react-hook-form";
 import { useAuth } from "../context/AuthContext";
 import { updateUserProfileInDb } from "../firebase/firestoreService";
 import { countries } from "../utils/countries";
-import { timezones } from "../utils/timezoneList";
+import { timezones, getTimezoneByCountry } from "../utils/timezoneList";
 import {
   GLOBAL_MONTHS,
   getDaysInMonth,
@@ -203,7 +203,22 @@ export default function Profile() {
                         setValue("nativeCountry", country.code, {
                           shouldDirty: true,
                         });
+
+                        const detectedTimezone = getTimezoneByCountry(
+                          country.code,
+                        );
+
+                        if (detectedTimezone) {
+                          setValue("timezone", detectedTimezone, {
+                            shouldDirty: true,
+                          });
+                        }
+
                         setCountryDropdownOpen(false);
+                        setCountrySearchQuery("");
+
+                        setTimezoneDropdownOpen(false);
+                        setTimezoneSearchQuery("");
                       }}
                       className="px-4 py-2.5 hover:bg-slate-50 text-base cursor-pointer"
                     >

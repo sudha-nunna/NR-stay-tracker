@@ -795,10 +795,6 @@
 //   );
 // }
 
-
-
-
-
 import { useEffect, useState, useRef } from "react";
 import { useAuth } from "../context/AuthContext";
 import {
@@ -840,7 +836,7 @@ export default function Dashboard() {
   const [metricsLoading, setMetricsLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
-  
+
   // Dashboard Interactive Menu dropdown selectors handling variables
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef(null);
@@ -863,8 +859,18 @@ export default function Dashboard() {
       if (/^\d{2}-\d{2}$/.test(dateStr)) {
         const [month, day] = dateStr.split("-");
         const shortMonths = [
-          "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-          "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+          "Jan",
+          "Feb",
+          "Mar",
+          "Apr",
+          "May",
+          "Jun",
+          "Jul",
+          "Aug",
+          "Sep",
+          "Oct",
+          "Nov",
+          "Dec",
         ];
         const monthIndex = parseInt(month, 10) - 1;
 
@@ -905,7 +911,8 @@ export default function Dashboard() {
       }
     }
     document.addEventListener("mousedown", handleClickOutsideMenu);
-    return () => document.removeEventListener("mousedown", handleClickOutsideMenu);
+    return () =>
+      document.removeEventListener("mousedown", handleClickOutsideMenu);
   }, []);
 
   useEffect(() => {
@@ -1036,7 +1043,9 @@ export default function Dashboard() {
         profile?.nativeCountry ||
         "US"
       ).toUpperCase();
-      const cleanDateStr = dateStr.includes("T") ? dateStr.split("T")[0] : dateStr;
+      const cleanDateStr = dateStr.includes("T")
+        ? dateStr.split("T")[0]
+        : dateStr;
 
       const normalizeDate = (d) => {
         if (!d) return d;
@@ -1049,7 +1058,8 @@ export default function Dashboard() {
         return (
           rDept === cleanDateStr &&
           rArr === cleanDateStr &&
-          (r.purpose === "Calendar Check-In" || r.purpose === "Calendar Check-Out")
+          (r.purpose === "Calendar Check-In" ||
+            r.purpose === "Calendar Check-Out")
         );
       });
 
@@ -1058,20 +1068,33 @@ export default function Dashboard() {
           if (!r.departureDate || !r.arrivalDate) return false;
           const rDept = normalizeDate(r.departureDate);
           const rArr = normalizeDate(r.arrivalDate);
-          if (rDept === rArr && (r.purpose === "Calendar Check-In" || r.purpose === "Calendar Check-Out")) {
+          if (
+            rDept === rArr &&
+            (r.purpose === "Calendar Check-In" ||
+              r.purpose === "Calendar Check-Out")
+          ) {
             return false;
           }
           return cleanDateStr >= rDept && cleanDateStr <= rArr;
         })
         .sort((a, b) => {
-          const aLength = new Date(normalizeDate(a.arrivalDate)) - new Date(normalizeDate(a.departureDate));
-          const bLength = new Date(normalizeDate(b.arrivalDate)) - new Date(normalizeDate(b.departureDate));
+          const aLength =
+            new Date(normalizeDate(a.arrivalDate)) -
+            new Date(normalizeDate(a.departureDate));
+          const bLength =
+            new Date(normalizeDate(b.arrivalDate)) -
+            new Date(normalizeDate(b.departureDate));
           return aLength - bLength;
         })[0];
 
-      const targetToCountry = nextStatus === "Abroad Stay" ? "ABROAD" : homeBase;
-      const targetFromCountry = nextStatus === "Abroad Stay" ? homeBase : "ABROAD";
-      const targetPurpose = nextStatus === "Abroad Stay" ? "Calendar Check-In" : "Calendar Check-Out";
+      const targetToCountry =
+        nextStatus === "Abroad Stay" ? "ABROAD" : homeBase;
+      const targetFromCountry =
+        nextStatus === "Abroad Stay" ? homeBase : "ABROAD";
+      const targetPurpose =
+        nextStatus === "Abroad Stay"
+          ? "Calendar Check-In"
+          : "Calendar Check-Out";
 
       if (explicitSingleRecord) {
         await updateTravelRecord(explicitSingleRecord.recordId, {
@@ -1163,8 +1186,12 @@ export default function Dashboard() {
     }
   };
 
-  const displayHomeDays = hasValidTravelRecords ? (calculation?.homeDays ?? 0) : 0;
-  const displayOutsideDays = hasValidTravelRecords ? (calculation?.outsideDays ?? 0) : 0;
+  const displayHomeDays = hasValidTravelRecords
+    ? (calculation?.homeDays ?? 0)
+    : 0;
+  const displayOutsideDays = hasValidTravelRecords
+    ? (calculation?.outsideDays ?? 0)
+    : 0;
   const loggedTotalDays = calculation?.totalDays || 0;
   const remainingTargetDays = Math.max(0, definedMilestone - displayHomeDays);
 
@@ -1191,7 +1218,9 @@ export default function Dashboard() {
 
   const getCurrentFootprint = () => {
     if (records.length === 0) return homeCountryName;
-    const gpsRecords = records.filter((r) => r.purpose === "Daily GPS Check-In");
+    const gpsRecords = records.filter(
+      (r) => r.purpose === "Daily GPS Check-In",
+    );
     const targetRecords = gpsRecords.length > 0 ? gpsRecords : records;
 
     const latestRecord = [...targetRecords].sort((a, b) => {
@@ -1200,25 +1229,44 @@ export default function Dashboard() {
       return dateB - dateA;
     })[0];
 
-    if (latestRecord?.toCountry?.toUpperCase() === "ABROAD" || latestRecord?.toCountry?.toUpperCase() === "OTHER") {
+    if (
+      latestRecord?.toCountry?.toUpperCase() === "ABROAD" ||
+      latestRecord?.toCountry?.toUpperCase() === "OTHER"
+    ) {
       return "Abroad";
     }
-    return latestRecord?.toCountry ? getFullCountryName(latestRecord.toCountry) : "Locating...";
+    return latestRecord?.toCountry
+      ? getFullCountryName(latestRecord.toCountry)
+      : "Locating...";
   };
 
   const currentFootprintDisplay = getCurrentFootprint();
+  const homeBase = (
+    profile?.homeCountry ||
+    profile?.nativeCountry ||
+    "US"
+  ).toUpperCase();
   const computedDayMap = {};
 
   if (hasValidTravelRecords) {
-    const homeBase = (profile?.homeCountry || profile?.nativeCountry || "US").toUpperCase();
+    const homeBase = (
+      profile?.homeCountry ||
+      profile?.nativeCountry ||
+      "US"
+    ).toUpperCase();
 
     records.forEach((record) => {
       if (!record?.arrivalDate || !record?.departureDate) return;
-      if (record.arrivalDate === record.departureDate && (record.purpose === "Calendar Check-In" || record.purpose === "Calendar Check-Out")) {
+      if (
+        record.arrivalDate === record.departureDate &&
+        (record.purpose === "Calendar Check-In" ||
+          record.purpose === "Calendar Check-Out")
+      ) {
         return;
       }
 
-      const isRecordHome = record.toCountry && record.toCountry.toUpperCase() === homeBase;
+      const isRecordHome =
+        record.toCountry && record.toCountry.toUpperCase() === homeBase;
       const days = eachDayOfInterval({
         start: new Date(record.departureDate + "T00:00:00"),
         end: new Date(record.arrivalDate + "T00:00:00"),
@@ -1236,10 +1284,15 @@ export default function Dashboard() {
     records.forEach((record) => {
       if (!record?.arrivalDate || !record?.departureDate) return;
       if (record.arrivalDate !== record.departureDate) return;
-      if (record.purpose !== "Calendar Check-In" && record.purpose !== "Calendar Check-Out") return;
+      if (
+        record.purpose !== "Calendar Check-In" &&
+        record.purpose !== "Calendar Check-Out"
+      )
+        return;
 
       const key = record.arrivalDate;
-      const isRecordHome = record.toCountry && record.toCountry.toUpperCase() === homeBase;
+      const isRecordHome =
+        record.toCountry && record.toCountry.toUpperCase() === homeBase;
 
       computedDayMap[key] = {
         status: isRecordHome ? "Home Stay" : "Abroad Stay",
@@ -1247,24 +1300,94 @@ export default function Dashboard() {
       };
     });
   }
+  records.forEach((record) => {
+    if (!record?.arrivalDate || !record?.departureDate) return;
+    if (record.arrivalDate !== record.departureDate) return;
+    if (
+      record.purpose !== "Calendar Check-In" &&
+      record.purpose !== "Calendar Check-Out"
+    )
+      return;
 
+    const key = record.arrivalDate;
+    const isRecordHome =
+      record.toCountry && record.toCountry.toUpperCase() === homeBase;
+
+    computedDayMap[key] = {
+      status: isRecordHome ? "Home Stay" : "Abroad Stay",
+      country: getFullCountryName(record.toCountry),
+    };
+  });
+  const calendarHomeDays = Object.values(computedDayMap).filter(
+    (day) => day.status === "Home Stay",
+  ).length;
+
+  const calendarAbroadDays = Object.values(computedDayMap).filter(
+    (day) => day.status === "Abroad Stay",
+  ).length;
+  // const handleFormSubmitCallback = async (data) => {
+  //   try {
+  //     if (editingRecord) {
+  //       await updateTravelRecord(editingRecord.recordId, data);
+  //       toast.success("Record updated");
+  //     } else {
+  //       await addTravelRecord(user.uid, data);
+  //       toast.success("Record added");
+  //     }
+  //     setShowForm(false);
+  //     setEditingRecord(null);
+  //   } catch (error) {
+  //     console.error(error);
+  //     toast.error("Operation failed");
+  //   }
+  // };
   const handleFormSubmitCallback = async (data) => {
     try {
+      const normalizeDate = (date) => {
+        if (!date) return "";
+        return date.includes("T") ? date.split("T")[0] : date;
+      };
+
+      const isDuplicate = records.some((record) => {
+        if (editingRecord && record.recordId === editingRecord.recordId) {
+          return false;
+        }
+
+        return (
+          normalizeDate(record.departureDate) ===
+            normalizeDate(data.departureDate) &&
+          normalizeDate(record.arrivalDate) ===
+            normalizeDate(data.arrivalDate) &&
+          (record.fromCountry || "").toUpperCase() ===
+            (data.fromCountry || "").toUpperCase() &&
+          (record.toCountry || "").toUpperCase() ===
+            (data.toCountry || "").toUpperCase()
+        );
+      });
+
+      if (isDuplicate) {
+        toast.error(
+          "A travel record with the same dates and countries already exists.",
+        );
+        return;
+      }
+
       if (editingRecord) {
         await updateTravelRecord(editingRecord.recordId, data);
-        toast.success("Record updated");
+        toast.success("Record updated successfully");
       } else {
         await addTravelRecord(user.uid, data);
-        toast.success("Record added");
+        toast.success("Travel record added successfully");
       }
+
       setShowForm(false);
       setEditingRecord(null);
     } catch (error) {
       console.error(error);
-      toast.error("Operation failed");
+
+      toast.error(error?.message || "Unable to save travel record");
     }
   };
-
   return (
     <div className="space-y-8 p-4 max-w-7xl mx-auto text-left">
       {/* Header */}
@@ -1309,11 +1432,15 @@ export default function Dashboard() {
               <h3 className="text-2xl sm:text-3xl font-black text-amber-900">
                 {displayHomeDays}
               </h3>
-              <span className="text-base sm:text-lg font-semibold text-amber-700">/</span>
+              <span className="text-base sm:text-lg font-semibold text-amber-700">
+                /
+              </span>
               <h3 className="text-2xl sm:text-3xl font-black text-amber-900">
                 {definedMilestone}
               </h3>
-              <span className="text-xs sm:text-sm text-amber-600 font-semibold ml-0.5">days</span>
+              <span className="text-xs sm:text-sm text-amber-600 font-semibold ml-0.5">
+                days
+              </span>
             </div>
             <p className="text-xs sm:text-sm text-red-600 mt-2 sm:mt-3 font-semibold">
               Remaining: {remainingTargetDays} Days
@@ -1321,17 +1448,25 @@ export default function Dashboard() {
           </div>
 
           <div className="bg-green-50 rounded-2xl p-5 border border-green-100">
-            <p className="text-sm text-green-700 font-medium">Own Country Stay</p>
+            <p className="text-sm text-green-700 font-medium">
+              Own Country Stay
+            </p>
             <div className="flex items-center gap-2 mt-1">
-              <h3 className="text-3xl font-bold text-green-900 mt-2">{displayHomeDays}</h3>
+              <h3 className="text-3xl font-bold text-green-900 mt-2">
+                {displayHomeDays}
+              </h3>
               <p className="text-sm text-green-600 font-medium mt-3">days</p>
             </div>
           </div>
 
           <div className="bg-blue-50 rounded-2xl p-5 border border-blue-100">
-            <p className="text-sm text-blue-700 font-medium">Abroad Country Stay</p>
+            <p className="text-sm text-blue-700 font-medium">
+              Abroad Country Stay
+            </p>
             <div className="flex items-center gap-2 mt-1">
-              <h3 className="text-3xl font-bold text-blue-900 mt-2">{displayOutsideDays}</h3>
+              <h3 className="text-3xl font-bold text-blue-900 mt-2">
+                {displayOutsideDays}
+              </h3>
               <p className="text-sm text-blue-600 font-medium mt-3">days</p>
             </div>
           </div>
@@ -1339,7 +1474,9 @@ export default function Dashboard() {
           <div className="bg-purple-50 rounded-2xl p-5 border border-purple-100">
             <p className="text-sm text-purple-700 font-medium">Total Stay</p>
             <div className="flex items-center gap-2 mt-1">
-              <h3 className="text-3xl font-bold text-purple-900 mt-2">{loggedTotalDays}</h3>
+              <h3 className="text-3xl font-bold text-purple-900 mt-2">
+                {loggedTotalDays}
+              </h3>
               <p className="text-sm text-purple-600 font-medium mt-3">days</p>
             </div>
           </div>
@@ -1359,7 +1496,9 @@ export default function Dashboard() {
         <div className="w-full bg-slate-100 h-3 rounded-full overflow-hidden border border-slate-200">
           <div
             className="bg-gradient-to-r from-blue-500 to-indigo-600 h-full transition-all duration-500"
-            style={{ width: `${records.length > 0 ? calculation.progressPercentage : 0}%` }}
+            style={{
+              width: `${records.length > 0 ? calculation.progressPercentage : 0}%`,
+            }}
           ></div>
         </div>
         <div className="flex justify-between items-center mt-3 text-xs text-slate-500 font-semibold">
@@ -1371,9 +1510,12 @@ export default function Dashboard() {
       {/* Profile Summary Logs Matrix */}
       <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm">
         <div className="border-b border-slate-100 pb-4 mb-6">
-          <h2 className="text-xl font-semibold text-slate-900">Profile Summary</h2>
+          <h2 className="text-xl font-semibold text-slate-900">
+            Profile Summary
+          </h2>
           <p className="text-xs text-slate-500 mt-0.5">
-            Overview of your current core settings, tracking horizons, and active global workspace footprint.
+            Overview of your current core settings, tracking horizons, and
+            active global workspace footprint.
           </p>
         </div>
 
@@ -1381,13 +1523,22 @@ export default function Dashboard() {
           {cards.map((card, index) => {
             const Icon = card.icon;
             return (
-              <div key={index} className="bg-slate-50/50 border border-slate-100 rounded-2xl p-5 hover:shadow-sm transition-all">
+              <div
+                key={index}
+                className="bg-slate-50/50 border border-slate-100 rounded-2xl p-5 hover:shadow-sm transition-all"
+              >
                 <div className="flex items-start justify-between">
                   <div className="space-y-1">
-                    <p className="text-xs uppercase tracking-wide text-slate-500 font-semibold">{card.title}</p>
-                    <p className="text-lg font-semibold text-slate-900 break-words mt-2">{card.value}</p>
+                    <p className="text-xs uppercase tracking-wide text-slate-500 font-semibold">
+                      {card.title}
+                    </p>
+                    <p className="text-lg font-semibold text-slate-900 break-words mt-2">
+                      {card.value}
+                    </p>
                   </div>
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${card.iconBg}`}>
+                  <div
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${card.iconBg}`}
+                  >
                     <Icon className="text-lg" />
                   </div>
                 </div>
@@ -1398,8 +1549,12 @@ export default function Dashboard() {
           <div className="bg-slate-50/50 border border-slate-100 rounded-2xl p-6 hover:shadow-sm transition-all">
             <div className="flex items-start justify-between">
               <div className="space-y-1">
-                <p className="text-xs uppercase tracking-wide text-slate-500 font-semibold">Current Footprint</p>
-                <p className="text-lg font-semibold text-slate-900 truncate max-w-[180px]">{currentFootprintDisplay}</p>
+                <p className="text-xs uppercase tracking-wide text-slate-500 font-semibold">
+                  Current Footprint
+                </p>
+                <p className="text-lg font-semibold text-slate-900 truncate max-w-[180px]">
+                  {currentFootprintDisplay}
+                </p>
               </div>
               <div className="w-10 h-10 rounded-xl bg-green-50 text-green-600 flex items-center justify-center shrink-0">
                 <FiMapPin className="text-lg" />
@@ -1414,8 +1569,14 @@ export default function Dashboard() {
         <div className="bg-orange-50 border border-orange-200 rounded-2xl p-4 flex items-start gap-3">
           <FiAlertTriangle className="text-orange-600 text-xl mt-0.5" />
           <div>
-            <h3 className="font-semibold text-orange-800">{hasValidTravelRecords ? "Residency Warning" : "Add Travel History"}</h3>
-            <p className="text-orange-700 text-sm mt-1">{calculation.warning}</p>
+            <h3 className="font-semibold text-orange-800">
+              {hasValidTravelRecords
+                ? "Residency Warning"
+                : "Add Travel History"}
+            </h3>
+            <p className="text-orange-700 text-sm mt-1">
+              {calculation.warning}
+            </p>
           </div>
         </div>
       )}
@@ -1427,9 +1588,13 @@ export default function Dashboard() {
             <FiInfo className="text-xl" />
           </div>
           <div className="space-y-1">
-            <h3 className="font-bold text-blue-900 text-base tracking-tight">Add Your Travel History</h3>
+            <h3 className="font-bold text-blue-900 text-base tracking-tight">
+              Add Your Travel History
+            </h3>
             <p className="text-base text-blue-700 leading-relaxed max-w-3xl">
-              For accurate residency calculations, add your previous travel history using the Add Travel Record button or update your stay records directly from the calendar below.
+              For accurate residency calculations, add your previous travel
+              history using the Add Travel Record button or update your stay
+              records directly from the calendar below.
             </p>
           </div>
         </div>
@@ -1443,7 +1608,9 @@ export default function Dashboard() {
           >
             <FiPlus />
             <span>Add Travel Record</span>
-            <FiChevronDown className={`transition-transform duration-200 ${isMenuOpen ? "rotate-180" : ""}`} />
+            <FiChevronDown
+              className={`transition-transform duration-200 ${isMenuOpen ? "rotate-180" : ""}`}
+            />
           </button>
 
           {isMenuOpen && (
@@ -1452,9 +1619,14 @@ export default function Dashboard() {
                 type="button"
                 onClick={() => {
                   setIsMenuOpen(false);
-                  const element = document.getElementById("stay-calendar-section");
+                  const element = document.getElementById(
+                    "stay-calendar-section",
+                  );
                   if (element) {
-                    element.scrollIntoView({ behavior: "smooth", block: "center" });
+                    element.scrollIntoView({
+                      behavior: "smooth",
+                      block: "center",
+                    });
                   }
                 }}
                 className="w-full flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-medium text-slate-700 hover:bg-slate-50 transition text-left cursor-pointer"
@@ -1480,14 +1652,41 @@ export default function Dashboard() {
       </div>
 
       {/* Target Stay Calendar anchor zone block */}
-      <div id="stay-calendar-section" className="bg-gradient-to-br from-white via-slate-50 to-blue-50 rounded-3xl space-y-6 w-full mx-auto border border-slate-200 shadow-lg p-6">
-        <StayCalendar
-          dayMap={computedDayMap}
-          travelRecords={records}
-          fyStart={profile?.fyStart || profile?.residencyPeriodStart}
-          fyEnd={profile?.fyEnd || profile?.residencyPeriodEnd}
-          onToggleDayPresence={handleTogglePresence}
-        />
+      <div
+        id="stay-calendar-section"
+        className="bg-gradient-to-br from-white via-slate-50 to-blue-50 rounded-3xl space-y-6 w-full mx-auto border border-slate-200 shadow-lg p-6"
+      >
+        <div
+          id="stay-calendar-section"
+          className="bg-gradient-to-br from-white via-slate-50 to-blue-50 rounded-3xl space-y-6 w-full mx-auto border border-slate-200 shadow-lg p-6"
+        >
+          {/* NEW HEADER */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <h2 className="text-xl font-bold text-slate-900">Stay Calendar</h2>
+
+            <div className="flex flex-wrap gap-3">
+              <div className="px-4 py-2 bg-green-50 border border-green-200 rounded-xl">
+                <span className="text-green-700 font-semibold text-sm">
+                  🏠 Home: {calendarHomeDays} Days
+                </span>
+              </div>
+
+              <div className="px-4 py-2 bg-blue-50 border border-blue-200 rounded-xl">
+                <span className="text-blue-700 font-semibold text-sm">
+                  🌍 Abroad: {calendarAbroadDays} Days
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <StayCalendar
+            dayMap={computedDayMap}
+            travelRecords={records}
+            fyStart={profile?.fyStart || profile?.residencyPeriodStart}
+            fyEnd={profile?.fyEnd || profile?.residencyPeriodEnd}
+            onToggleDayPresence={handleTogglePresence}
+          />
+        </div>
       </div>
 
       {showForm && (
@@ -1496,6 +1695,7 @@ export default function Dashboard() {
             <TravelForm
               initialData={editingRecord}
               onSubmit={handleFormSubmitCallback}
+              travelRecords={records}
               onCancel={() => {
                 setShowForm(false);
                 setEditingRecord(null);

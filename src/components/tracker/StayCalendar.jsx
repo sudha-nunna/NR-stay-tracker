@@ -181,7 +181,7 @@ export default function StayCalendar({
           <div className="w-3 h-3 bg-slate-50 border border-slate-200 text-slate-300 flex items-center justify-center">
             <FiCalendar size={8} />
           </div>
-          <span className="text-slate-400">Locked</span>
+          <span className="text-slate-600 font-semibold">Locked(future days)</span>
         </div>
       </div>
 
@@ -301,7 +301,7 @@ export default function StayCalendar({
                             : isAbroadStay
                               ? "text-blue-900"
                               : isFutureDay
-                                ? "text-slate-300"
+                                ? "text-slate-500"
                                 : "text-slate-700"
                       }`}
                     >

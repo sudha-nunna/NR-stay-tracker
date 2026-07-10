@@ -108,7 +108,7 @@ export default function TravelForm({
     });
 
     if (isExactDuplicate) {
-      toast.error("A travel record already exists for these dates.");
+      toast.error("A travel record already exists for these dates,if you want to change data can edit in histrory table.");
       return;
     }
 

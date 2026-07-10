@@ -162,14 +162,6 @@ export default function StayCalendar({
       {/* System Legend Matrix Panel */}
       <div className="flex flex-wrap gap-x-4 gap-y-2 items-center text-[16px] font-medium text-slate-500 py-1 border-b border-slate-100 pb-3">
         <div className="flex items-center gap-1.5">
-          <div className="w-3 h-3 bg-emerald-50 rounded-sm border border-emerald-300 flex items-center justify-center text-emerald-600">
-            <FiHome size={8} />
-          </div>
-          <span className="text-slate-600 font-semibold">
-            Home(double click to set home)
-          </span>
-        </div>
-        <div className="flex items-center gap-1.5">
           <div className="w-3 h-3 bg-blue-50 rounded-sm border border-blue-300 flex items-center justify-center text-blue-600">
             <FiGlobe size={8} />
           </div>
@@ -177,6 +169,15 @@ export default function StayCalendar({
             Abroad(click to set Abroad)
           </span>
         </div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-3 h-3 bg-emerald-50 rounded-sm border border-emerald-300 flex items-center justify-center text-emerald-600">
+            <FiHome size={8} />
+          </div>
+          <span className="text-slate-600 font-semibold">
+            Home(double click to set home)
+          </span>
+        </div>
+        
         <div className="flex items-center gap-1.5">
           <div className="w-3 h-3 bg-slate-50 border border-slate-200 text-slate-300 flex items-center justify-center">
             <FiCalendar size={8} />

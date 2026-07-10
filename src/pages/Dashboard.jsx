@@ -1430,7 +1430,7 @@ export default function Dashboard() {
             </p>
             <div className="flex flex-wrap items-baseline gap-1 mt-2">
               <h3 className="text-2xl sm:text-3xl font-black text-amber-900">
-                {displayHomeDays}
+                 {displayOutsideDays}
               </h3>
               <span className="text-base sm:text-lg font-semibold text-amber-700">
                 /
@@ -1661,7 +1661,7 @@ export default function Dashboard() {
           className="bg-gradient-to-br from-white via-slate-50 to-blue-50 rounded-3xl space-y-6 w-full mx-auto border border-slate-200 shadow-lg p-6"
         >
           {/* NEW HEADER */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+          {/* <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4"> */}
             <h2 className="text-xl font-bold text-slate-900">Stay Calendar</h2>
 
             <div className="flex flex-wrap gap-3">
@@ -1676,7 +1676,7 @@ export default function Dashboard() {
                   🌍 Abroad: {calendarAbroadDays} Days
                 </span>
               </div>
-            </div>
+            
           </div>
 
           <StayCalendar
@@ -1686,7 +1686,7 @@ export default function Dashboard() {
             fyEnd={profile?.fyEnd || profile?.residencyPeriodEnd}
             onToggleDayPresence={handleTogglePresence}
           />
-        </div>
+          </div>
       </div>
 
       {showForm && (

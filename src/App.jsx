@@ -20,7 +20,7 @@ export default function App() {
             right: 20,
           }}
           toastOptions={{
-            duration: 2500,
+            duration: 3500,
             className:
               "bg-white text-slate-800 border border-slate-200 rounded-xl shadow-lg px-4 py-3 text-base font-medium",
             success: {

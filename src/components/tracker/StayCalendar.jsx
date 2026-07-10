@@ -86,36 +86,44 @@ export default function StayCalendar({
   };
 
   return (
-    <div className="bg-white rounded-2xl space-y-6 w-full mx-auto border border-gray-200 p-4">
+    <div
+      className="bg-white rounded-3xl space-y-4 w-full mx-auto border border-slate-200/80 p-4 sm:p-6 shadow-sm"
+      id="stay-calendar-section"
+    >
       {/* Structural Header Navigation Frame */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-5 border-b border-slate-100">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
         <div>
-          <h2 className="text-lg font-semibold text-slate-900 tracking-tight">
-            Travel Calendar
-          </h2>
-          <p className="text-blue-600 text-xs mt-0.5">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="text-lg font-bold text-slate-950 tracking-tight">
+              Travel Calendar
+            </h2>
+            <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 text-[11px] font-semibold border border-blue-100 shrink-0">
+              {travelRecords.length} Records Added
+            </span>
+          </div>
+          <p className="text-slate-500 text-[16px] mt-0.5">
             Track your Home and Abroad stays across the selected period.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 self-start lg:self-auto">
+        <div className="flex flex-wrap items-center gap-1.5 self-start sm:self-auto">
           <button
             type="button"
             onClick={handleResetToToday}
-            className="px-3 py-1.5 bg-white border border-slate-200 text-slate-700 text-xs font-medium rounded-lg hover:bg-slate-50 transition cursor-pointer flex items-center gap-1"
+            className="px-2.5 py-1.5 bg-white border border-slate-200 text-slate-700 text-[16px] font-semibold rounded-xl hover:bg-slate-50 transition cursor-pointer flex items-center gap-1 h-8 shadow-sm"
           >
-            <FiCalendar className="text-slate-400" />
-            <span>Today</span>
+            <FiCalendar className="text-slate-400" size={13} />
+            <span className="hidden xs:inline">Today</span>
           </button>
 
           <select
             value={currentViewDate.getMonth()}
             onChange={handleMonthChange}
-            className="px-2.5 py-1.5 bg-white border border-slate-200 text-slate-700 text-xs font-semibold rounded-lg hover:border-slate-300 transition outline-none cursor-pointer"
+            className="px-2 py-1.5 bg-white border border-slate-200 text-slate-800 text-[16px] font-bold rounded-xl hover:border-slate-300 transition outline-none cursor-pointer h-8 shadow-sm"
           >
             {MONTHS_LIST.map((m, index) => (
               <option key={m} value={index}>
-                {m}
+                {m.substring(0, 3)}
               </option>
             ))}
           </select>
@@ -123,7 +131,7 @@ export default function StayCalendar({
           <select
             value={currentViewDate.getFullYear()}
             onChange={handleYearChange}
-            className="px-2.5 py-1.5 bg-white border border-slate-200 text-slate-700 text-xs font-semibold rounded-lg hover:border-slate-300 transition outline-none cursor-pointer"
+            className="px-2 py-1.5 bg-white border border-slate-200 text-slate-800 text-[16px] font-bold rounded-xl hover:border-slate-300 transition outline-none cursor-pointer h-8 shadow-sm"
           >
             {YEARS_LIST.map((y) => (
               <option key={y} value={y}>
@@ -132,193 +140,216 @@ export default function StayCalendar({
             ))}
           </select>
 
-          <div className="flex items-center border border-slate-200 rounded-lg bg-white overflow-hidden ml-1">
+          <div className="flex items-center border border-slate-200 rounded-xl bg-white overflow-hidden h-8 shadow-sm">
             <button
               type="button"
               onClick={handlePrevMonth}
-              className="p-2 hover:bg-slate-50 text-slate-600 transition cursor-pointer border-r border-slate-100"
+              className="px-2.5 h-full hover:bg-slate-50 text-slate-600 transition cursor-pointer border-r border-slate-100 flex items-center justify-center"
             >
-              <FiChevronLeft size={15} />
+              <FiChevronLeft size={14} />
             </button>
             <button
               type="button"
               onClick={handleNextMonth}
-              className="p-2 hover:bg-slate-50 text-slate-600 transition cursor-pointer"
+              className="px-2.5 h-full hover:bg-slate-50 text-slate-600 transition cursor-pointer flex items-center justify-center"
             >
-              <FiChevronRight size={15} />
+              <FiChevronRight size={14} />
             </button>
           </div>
         </div>
       </div>
 
       {/* System Legend Matrix Panel */}
-      <div className="flex flex-wrap gap-x-5 gap-y-2 items-center text-xs font-medium text-slate-500 py-1">
-        <div className="flex items-center gap-2">
-          <div className="w-3.5 h-3.5 bg-emerald-50 rounded border border-emerald-300 flex items-center justify-center text-emerald-600">
-            <FiHome size={9} />
+      <div className="flex flex-wrap gap-x-4 gap-y-2 items-center text-[16px] font-medium text-slate-500 py-1 border-b border-slate-100 pb-3">
+        <div className="flex items-center gap-1.5">
+          <div className="w-3 h-3 bg-emerald-50 rounded-sm border border-emerald-300 flex items-center justify-center text-emerald-600">
+            <FiHome size={8} />
           </div>
-          <span>Home Stay (Green Border)</span>
+          <span className="text-slate-600 font-semibold">
+            Home(double click to set home)
+          </span>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="w-3.5 h-3.5 bg-blue-50 rounded border border-blue-300 flex items-center justify-center text-blue-600">
-            <FiGlobe size={9} />
+        <div className="flex items-center gap-1.5">
+          <div className="w-3 h-3 bg-blue-50 rounded-sm border border-blue-300 flex items-center justify-center text-blue-600">
+            <FiGlobe size={8} />
           </div>
-          <span>Abroad Stay (Blue Border)</span>
+          <span className="text-slate-600 font-semibold">
+            Abroad(click to set Abroad)
+          </span>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="w-3.5 h-3.5 bg-slate-50 border border-slate-200 opacity-60 text-slate-300 flex items-center justify-center">
-            <FiCalendar size={9} />
+        <div className="flex items-center gap-1.5">
+          <div className="w-3 h-3 bg-slate-50 border border-slate-200 text-slate-300 flex items-center justify-center">
+            <FiCalendar size={8} />
           </div>
-          <span>Future Days (Locked Actions)</span>
+          <span className="text-slate-400">Locked</span>
         </div>
       </div>
 
-      {/* Primary Grid Grid Elements */}
-      <div className="w-full overflow-x-auto scrollbar-thin scrollbar-thumb-slate-200 active:scrollbar-thumb-slate-300 touch-pan-x pb-2">
-        <div className="space-y-1.5 min-w-[750px]">
-        <div className="grid grid-cols-7 gap-1.5 text-center">
-          {WEEKDAYS.map((day) => (
-            <div
-              key={day}
-              className="text-lg font-semibold text-blue-600 uppercase tracking-wider py-1"
-            >
-              {day}
-            </div>
-          ))}
-        </div>
-
-        <div className="grid grid-cols-7 gap-3">
-          {Array.from({ length: startDayOffset }).map((_, index) => (
-            <div
-              key={`empty-${index}`}
-              className="bg-slate-50/40 border border-slate-100/40 rounded-2xl min-h-[110px] opacity-20"
-            />
-          ))}
-
-          {daysInMonth.map((day) => {
-            const dateStr = format(day, "yyyy-MM-dd");
-            const todayDate = new Date();
-            const isFutureDay = isAfter(day, todayDate) && !isToday(day);
-
-            // PRIORITY HIERARCHY RESOLUTION ENGINE
-            const explicitMapEntry = dayMap[dateStr];
-
-            let backgroundRangeMatch = null;
-            if (!explicitMapEntry && Array.isArray(travelRecords)) {
-              backgroundRangeMatch = travelRecords.find((record) => {
-                if (!record.departureDate || !record.arrivalDate) return false;
-                try {
-                  const start = parseISO(record.departureDate.split("T")[0]);
-                  const end = parseISO(record.arrivalDate.split("T")[0]);
-                  return isWithinInterval(day, { start, end });
-                } catch (e) {
-                  return false;
-                }
-              });
-            }
-
-            const recordExists =
-              explicitMapEntry || backgroundRangeMatch ? true : false;
-            let currentStatus = "not set";
-            let currentCountry = "not set";
-
-            if (explicitMapEntry) {
-              currentStatus = explicitMapEntry.status;
-              currentCountry = explicitMapEntry.country;
-            } else if (backgroundRangeMatch) {
-              const homeBase =
-                backgroundRangeMatch.homeCountry ||
-                backgroundRangeMatch.nativeCountry ||
-                "US";
-              const isHome =
-                backgroundRangeMatch.toCountry?.toUpperCase() ===
-                homeBase.toUpperCase();
-              currentStatus = isHome ? "Home Stay" : "Abroad Stay";
-              currentCountry = backgroundRangeMatch.toCountry || "Abroad";
-            }
-
-            const isHomeStay = recordExists && currentStatus === "Home Stay";
-            const isAbroadStay =
-              recordExists &&
-              (currentStatus === "Abroad Stay" ||
-                currentStatus === "Other Countries Stay");
-            const checkCurrentDay = isToday(day);
-
-            let dayStyles =
-              "bg-white border-slate-300 text-slate-800 hover:border-slate-200";
-            if (isHomeStay) {
-              dayStyles =
-                "bg-emerald-50/40 border-emerald-300 text-emerald-900";
-            } else if (isAbroadStay) {
-              dayStyles = "bg-blue-50/50 border-blue-300 text-blue-900";
-            }
-
-            if (isFutureDay) {
-              dayStyles += " bg-slate-50/30 border-slate-100/80 text-slate-400";
-            }
-
-            return (
+      {/* Calendar Layout Container */}
+      <div className="w-full">
+        <div className="space-y-1">
+          {/* Weekdays Row */}
+          <div className="grid grid-cols-7 gap-1 sm:gap-2 text-center mb-1">
+            {WEEKDAYS.map((day) => (
               <div
-                key={dateStr}
-                onClick={() =>
-                  handleDayActionToggle(dateStr, currentStatus, isFutureDay)
-                }
-                className={`group relative border rounded-2xl p-3 min-h-[110px] flex flex-col justify-between transition-all duration-150 cursor-pointer ${dayStyles} ${
-                  checkCurrentDay ? "ring-2 ring-slate-900 ring-offset-2" : ""
-                }`}
+                key={day}
+                className="text-[16px] sm:text-[16px] font-bold text-blue-700 uppercase tracking-wider py-0.5"
               >
-                <div className="flex items-center justify-between w-full">
-                  <span
-                    className={`text-lg font-bold ${checkCurrentDay ? "text-slate-950 font-black underline decoration-2 decoration-indigo-500 underline-offset-2" : isHomeStay ? "text-emerald-900" : isAbroadStay ? "text-blue-900" : "text-slate-700"}`}
-                  >
-                    {format(day, "d")}
-                  </span>
-
-                  {recordExists && (
-                    <div
-                      className={`p-1 rounded-md ${isHomeStay ? "bg-emerald-200/80 text-emerald-700" : "bg-blue-200 text-blue-600"}`}
-                    >
-                      {isHomeStay ? (
-                        <FiHome size={15} />
-                      ) : (
-                        <FiGlobe size={15} />
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                <div className="mt-1 text-left hidden sm:block">
-                  <p
-                    className={`text-[10px] font-bold tracking-tight truncate max-w-full ${isHomeStay ? "text-emerald-700" : isAbroadStay ? "text-blue-700" : "text-slate-400 font-normal"}`}
-                  >
-                    {recordExists
-                      ? isHomeStay
-                        ? "Home Base"
-                        : currentCountry || "Abroad"
-                      : "not set"}
-                  </p>
-                </div>
-                <div className="mt-2">
-                  {isFutureDay ? (
-                    <span className="px-2 py-1 text-[10px] font-semibold rounded-full bg-slate-100 text-slate-500">
-                      Locked
-                    </span>
-                  ) : isHomeStay ? (
-                    <span className="px-2 py-1 text-[10px] font-semibold rounded-full bg-green-100 text-green-700">
-                      Home
-                    </span>
-                  ) : isAbroadStay ? (
-                    <span className="px-2 py-1 text-[10px] font-semibold rounded-full bg-blue-100 text-blue-700">
-                      Abroad
-                    </span>
-                  ) : null}
-                </div>
+                {day.substring(0, 3)}
               </div>
-            );
-          })}
+            ))}
+          </div>
+
+          {/* Days Grid */}
+          <div className="grid grid-cols-7 gap-1 sm:gap-2">
+            {/* Offset Padding Days */}
+            {Array.from({ length: startDayOffset }).map((_, index) => (
+              <div
+                key={`empty-${index}`}
+                className="bg-slate-100/20 border border-slate-200 rounded-xl h-12 sm:h-20 opacity-30"
+              />
+            ))}
+
+            {/* Active Calendar Month Day Rows */}
+            {daysInMonth.map((day) => {
+              const dateStr = format(day, "yyyy-MM-dd");
+              const todayDate = new Date();
+              const isFutureDay = isAfter(day, todayDate) && !isToday(day);
+
+              const explicitMapEntry = dayMap[dateStr];
+
+              let backgroundRangeMatch = null;
+              if (!explicitMapEntry && Array.isArray(travelRecords)) {
+                backgroundRangeMatch = travelRecords.find((record) => {
+                  if (!record.departureDate || !record.arrivalDate)
+                    return false;
+                  try {
+                    const start = parseISO(record.departureDate.split("T")[0]);
+                    const end = parseISO(record.arrivalDate.split("T")[0]);
+                    return isWithinInterval(day, { start, end });
+                  } catch (e) {
+                    return false;
+                  }
+                });
+              }
+
+              const recordExists = !!(explicitMapEntry || backgroundRangeMatch);
+              let currentStatus = "not set";
+              let currentCountry = "not set";
+
+              if (explicitMapEntry) {
+                currentStatus = explicitMapEntry.status;
+                currentCountry = explicitMapEntry.country;
+              } else if (backgroundRangeMatch) {
+                const homeBase =
+                  backgroundRangeMatch.homeCountry ||
+                  backgroundRangeMatch.nativeCountry ||
+                  "US";
+                const isHome =
+                  backgroundRangeMatch.toCountry?.toUpperCase() ===
+                  homeBase.toUpperCase();
+                currentStatus = isHome ? "Home Stay" : "Abroad Stay";
+                currentCountry = backgroundRangeMatch.toCountry || "Abroad";
+              }
+
+              const isHomeStay = recordExists && currentStatus === "Home Stay";
+              const isAbroadStay =
+                recordExists &&
+                (currentStatus === "Abroad Stay" ||
+                  currentStatus === "Other Countries Stay");
+              const checkCurrentDay = isToday(day);
+
+              let dayStyles =
+                "bg-white border-slate-200 text-slate-800 hover:bg-slate-50/60 hover:border-slate-300";
+              if (isHomeStay) {
+                dayStyles =
+                  "bg-emerald-50/60 border-emerald-300 hover:bg-emerald-50/90 text-emerald-950";
+              } else if (isAbroadStay) {
+                dayStyles =
+                  "bg-blue-50/60 border-blue-300 hover:bg-blue-50/90 text-blue-950";
+              }
+
+              if (isFutureDay) {
+                dayStyles =
+                  "bg-slate-50/40 border-slate-100 text-slate-300 cursor-not-allowed";
+              }
+
+              return (
+                <div
+                  key={dateStr}
+                  onClick={() =>
+                    handleDayActionToggle(dateStr, currentStatus, isFutureDay)
+                  }
+                  className={`group relative border rounded-xl p-1.5 sm:p-2.5 h-12 sm:h-20 flex flex-col justify-between transition-all duration-150 cursor-pointer ${dayStyles} ${
+                    checkCurrentDay
+                      ? "ring-2 ring-slate-950 ring-offset-1 z-10"
+                      : ""
+                  }`}
+                  title={
+                    isFutureDay
+                      ? "Locked"
+                      : `Click to change status for ${dateStr}`
+                  }
+                >
+                  <div className="flex items-center justify-between w-full">
+                    <span
+                      className={`text-[16px] sm:text-base font-bold tracking-tight ${
+                        checkCurrentDay
+                          ? "text-slate-950 font-black underline decoration-2 decoration-blue-600 underline-offset-1"
+                          : isHomeStay
+                            ? "text-emerald-900"
+                            : isAbroadStay
+                              ? "text-blue-900"
+                              : isFutureDay
+                                ? "text-slate-300"
+                                : "text-slate-700"
+                      }`}
+                    >
+                      {format(day, "d")}
+                    </span>
+
+                    {recordExists && (
+                      <div
+                        className={`p-0.5 rounded-md hidden sm:block ${
+                          isHomeStay ? "text-emerald-600" : "text-blue-600"
+                        }`}
+                      >
+                        {isHomeStay ? (
+                          <FiHome size={12} />
+                        ) : (
+                          <FiGlobe size={12} />
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="text-left mt-auto">
+                    <p
+                      className={`text-[9px] sm:text-[10px] font-bold tracking-tight truncate max-w-full ${
+                        isHomeStay
+                          ? "text-emerald-700"
+                          : isAbroadStay
+                            ? "text-blue-700"
+                            : isFutureDay
+                              ? "text-slate-500 font-medium"
+                              : "text-slate-700 font-medium"
+                      }`}
+                    >
+                      {isFutureDay
+                        ? "Locked"
+                        : recordExists
+                          ? isHomeStay
+                            ? "Home"
+                            : "Abroad"
+                          : "No Record"}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
-    </div>
     </div>
   );
 }

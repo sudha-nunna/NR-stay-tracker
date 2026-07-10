@@ -2,8 +2,14 @@ import { useForm } from "react-hook-form";
 import { countries } from "../../utils/countries";
 import { FiPlus, FiSave, FiX, FiChevronDown } from "react-icons/fi";
 import { useEffect, useState, useRef } from "react";
-
-export default function TravelForm({ onSubmit, initialData, onCancel }) {
+import toast from "react-hot-toast";
+export default function TravelForm({
+  onSubmit,
+  initialData,
+  onCancel,
+  travelRecords = [],
+}) {
+  // export default function TravelForm({ onSubmit, initialData, onCancel }) {
   const {
     register,
     handleSubmit,
@@ -87,9 +93,49 @@ export default function TravelForm({ onSubmit, initialData, onCancel }) {
     countries.find((c) => c.code === watchedToCountry)?.name ||
     "Select Destination Country";
 
+  const handleFormValidationSubmit = async (data) => {
+    const newStart = new Date(data.departureDate + "T00:00:00");
+    const newEnd = new Date(data.arrivalDate + "T00:00:00");
+
+    // Exact duplicate check (same departure and arrival)
+    const isExactDuplicate = travelRecords.some((record) => {
+      if (initialData && record.recordId === initialData.recordId) return false;
+      if (!record.departureDate || !record.arrivalDate) return false;
+      return (
+        record.departureDate === data.departureDate &&
+        record.arrivalDate === data.arrivalDate
+      );
+    });
+
+    if (isExactDuplicate) {
+      toast.error("A travel record already exists for these dates.");
+      return;
+    }
+
+    // Existing overlapping check (preserve prior behavior)
+    const isOverlapping = travelRecords.some((record) => {
+      if (initialData && record.recordId === initialData.recordId) return false;
+      if (!record.departureDate || !record.arrivalDate) return false;
+
+      const existStart = new Date(record.departureDate + "T00:00:00");
+      const existEnd = new Date(record.arrivalDate + "T00:00:00");
+
+      return newStart <= existEnd && newEnd >= existStart;
+    });
+
+    if (isOverlapping) {
+      toast.error(
+        "A travel record already exists within the selected date range.",
+      );
+      return; // STOPS HERE
+    }
+
+    await onSubmit(data);
+  };
+
   return (
     <form
-      onSubmit={handleSubmit(onSubmit)}
+      onSubmit={handleSubmit(handleFormValidationSubmit)}
       className="bg-white border border-slate-200 shadow-xl rounded-2xl p-6 space-y-4 text-left"
     >
       <div className="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -252,9 +298,10 @@ export default function TravelForm({ onSubmit, initialData, onCancel }) {
             {...register("departureDate", {
               required: "Please select your travel start date.",
               validate: {
-                noFutureDays: (value) => 
-                  value <= todayStr || "Future travel records cannot be logged ahead of time."
-              }
+                noFutureDays: (value) =>
+                  value <= todayStr ||
+                  "Future travel records cannot be logged ahead of time.",
+              },
             })}
             className={`w-full px-3 py-2 bg-slate-50 border text-slate-900 rounded-lg text-base focus:bg-white outline-none transition ${errors.departureDate ? "border-red-400 focus:ring-2 focus:ring-red-200" : "border-slate-200 focus:ring-2 focus:ring-blue-500"}`}
           />
@@ -277,11 +324,14 @@ export default function TravelForm({ onSubmit, initialData, onCancel }) {
             {...register("arrivalDate", {
               required: "Please select your travel end date.",
               validate: {
-                noFutureDays: (value) => 
-                  value <= todayStr || "Future travel records cannot be logged ahead of time.",
-                chronologicalOrder: (value) => 
-                  !watchedDepartureDate || value >= watchedDepartureDate || "Travel end date must be on or after the start date."
-              }
+                noFutureDays: (value) =>
+                  value <= todayStr ||
+                  "Future travel records cannot be logged ahead of time.",
+                chronologicalOrder: (value) =>
+                  !watchedDepartureDate ||
+                  value >= watchedDepartureDate ||
+                  "Travel end date must be on or after the start date.",
+              },
             })}
             className={`w-full px-3 py-2 bg-slate-50 border text-slate-900 rounded-lg text-base focus:bg-white outline-none transition ${errors.arrivalDate ? "border-red-400 focus:ring-2 focus:ring-red-200" : "border-slate-200 focus:ring-2 focus:ring-blue-500"}`}
           />
@@ -303,8 +353,8 @@ export default function TravelForm({ onSubmit, initialData, onCancel }) {
               required: "Please specify the reason for your travel.",
               minLength: {
                 value: 3,
-                message: "Please enter a valid descriptive travel reason."
-              }
+                message: "Please enter a valid descriptive travel reason.",
+              },
             })}
             placeholder="Business, leisure, family emergency..."
             className={`w-full px-3 py-2 bg-slate-50 border text-slate-900 rounded-lg text-base focus:bg-white outline-none transition ${errors.purpose ? "border-red-400 focus:ring-2 focus:ring-red-200" : "border-slate-200 focus:ring-2 focus:ring-blue-500"}`}
@@ -338,7 +388,3 @@ export default function TravelForm({ onSubmit, initialData, onCancel }) {
     </form>
   );
 }
-
-
-
-

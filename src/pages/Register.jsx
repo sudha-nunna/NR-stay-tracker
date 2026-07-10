@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import { registerUser } from "../firebase/authService";
 import { countries } from "../utils/countries";
-import { timezones } from "../utils/timezoneList";
+import { timezones, getTimezoneByCountry } from "../utils/timezoneList";
 import { GLOBAL_MONTHS, getDaysInMonth } from "../utils/dateHelpers"; // Shared imports
 import { useState, useRef, useEffect } from "react";
 import { BiLoaderAlt } from "react-icons/bi";
@@ -17,7 +17,7 @@ export default function Register() {
     handleSubmit,
     watch,
     setValue,
-    formState: { errors },
+    formState: { errors, touchedFields },
   } = useForm({
     mode: "onChange",
     reValidateMode: "onChange",
@@ -55,20 +55,27 @@ export default function Register() {
   const [startDay, setStartDay] = useState("01");
   const [endMonth, setEndMonth] = useState("12");
   const [endDay, setEndDay] = useState("31");
+  const [endTouched, setEndTouched] = useState(false);
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
   // Sync Start Month/Day custom state to React Hook Form text strings
   useEffect(() => {
     if (startMonth && startDay) {
-      setValue("residencyPeriodStart", `${currentYear}-${startMonth}-${startDay}`, { shouldValidate: true });
+      setValue(
+        "residencyPeriodStart",
+        `${currentYear}-${startMonth}-${startDay}`,
+        { shouldValidate: true },
+      );
     }
   }, [startMonth, startDay, setValue, currentYear]);
 
   // Sync End Month/Day custom state to React Hook Form text strings
   useEffect(() => {
     if (endMonth && endDay) {
-      setValue("residencyPeriodEnd", `${currentYear}-${endMonth}-${endDay}`, { shouldValidate: true });
+      setValue("residencyPeriodEnd", `${currentYear}-${endMonth}-${endDay}`, {
+        shouldValidate: true,
+      });
     }
   }, [endMonth, endDay, setValue, currentYear]);
 
@@ -116,11 +123,13 @@ export default function Register() {
     setCountryDropdownOpen(false);
     setCountrySearchQuery("");
 
-    if (countryCode === "IN") setValue("timezone", "Asia/Kolkata");
-    else if (countryCode === "US") setValue("timezone", "America/New_York");
-    else if (countryCode === "GB") setValue("timezone", "Europe/London");
-    else if (countryCode === "SG") setValue("timezone", "Asia/Singapore");
-    else if (countryCode === "AE") setValue("timezone", "Asia/Dubai");
+    const detectedTimezone = getTimezoneByCountry(countryCode);
+
+    if (detectedTimezone) {
+      setValue("timezone", detectedTimezone, {
+        shouldValidate: true,
+      });
+    }
   };
 
   const handleTimezoneSelect = (tzValue) => {
@@ -193,7 +202,8 @@ export default function Register() {
                   {...register("email", {
                     required: "Email address is required",
                     pattern: {
-                      value: /^[a-z0-9._%+-]+@[a-z]+([.-]?[a-z]+)*\.[a-z]{2,}$/i,
+                      value:
+                        /^[a-z0-9._%+-]+@[a-z]+([.-]?[a-z]+)*\.[a-z]{2,}$/i,
                       message:
                         "Please enter a valid email address (e.g. user@gmail.com or user@companyname.io)",
                     },
@@ -221,10 +231,12 @@ export default function Register() {
                         required: "Password is required",
                         minLength: {
                           value: 8,
-                          message: "Password must be at least 8 characters long",
+                          message:
+                            "Password must be at least 8 characters long",
                         },
                         pattern: {
-                          value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/,
+                          value:
+                            /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/,
                           message:
                             "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character",
                         },
@@ -237,7 +249,11 @@ export default function Register() {
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700 cursor-pointer z-10"
                     >
-                      {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+                      {showPassword ? (
+                        <FiEyeOff size={18} />
+                      ) : (
+                        <FiEye size={18} />
+                      )}
                     </button>
                   </div>
                   {errors.password && (
@@ -265,13 +281,19 @@ export default function Register() {
                     />
                     <button
                       type="button"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      onClick={() =>
+                        setShowConfirmPassword(!showConfirmPassword)
+                      }
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700 cursor-pointer z-10"
                     >
-                      {showConfirmPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+                      {showConfirmPassword ? (
+                        <FiEyeOff size={18} />
+                      ) : (
+                        <FiEye size={18} />
+                      )}
                     </button>
                   </div>
-                  {errors.confirmPassword && (
+                  {errors.confirmPassword && touchedFields.confirmPassword && (
                     <p className="text-red-500 text-xs mt-1">
                       {errors.confirmPassword.message}
                     </p>
@@ -311,9 +333,12 @@ export default function Register() {
                         <input
                           type="text"
                           value={countrySearchQuery}
-                          onChange={(e) => setCountrySearchQuery(e.target.value)}
+                          onChange={(e) =>
+                            setCountrySearchQuery(e.target.value)
+                          }
                           placeholder="Search country..."
-                          className="w-full bg-transparent border-none outline-none text-xs text-slate-900 py-1"
+                          className="w-full bg-transparent border-none outline-none text-[16px] text-slate-900 py-1"
+                          // className="w-full bg-transparent border-none outline-none text-xs text-slate-900 py-1"
                           autoFocus
                         />
                       </div>
@@ -379,7 +404,9 @@ export default function Register() {
                     Your Time Zone
                   </label>
                   <div
-                    onClick={() => setTimezoneDropdownOpen(!timezoneDropdownOpen)}
+                    onClick={() =>
+                      setTimezoneDropdownOpen(!timezoneDropdownOpen)
+                    }
                     className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-base flex items-center justify-between cursor-pointer hover:bg-white transition"
                   >
                     <span className="truncate">{currentTimezoneLabel}</span>
@@ -395,15 +422,17 @@ export default function Register() {
                         <input
                           type="text"
                           value={timezoneSearchQuery}
-                          onChange={(e) => setTimezoneSearchQuery(e.target.value)}
+                          onChange={(e) =>
+                            setTimezoneSearchQuery(e.target.value)
+                          }
                           placeholder="Search timezone..."
-                          className="w-full bg-transparent border-none outline-none text-xs text-slate-900 py-1"
+                          className="w-full bg-transparent border-none outline-none text-[16px] text-slate-900 py-1"
                           autoFocus
                         />
                       </div>
                       <div className="overflow-y-auto flex-1 no-scrollbar">
                         {filteredTimezones.length === 0 ? (
-                          <div className="px-4 py-3 text-xs text-slate-400 italic text-center">
+                          <div className="px-4 py-3 text-[16px] text-slate-400 italic text-center">
                             No timezones matched
                           </div>
                         ) : (
@@ -411,7 +440,7 @@ export default function Register() {
                             <div
                               key={t.value}
                               onClick={() => handleTimezoneSelect(t.value)}
-                              className={`px-4 py-2 text-xs text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition cursor-pointer flex items-center justify-between ${selectedTimezoneValue === t.value ? "bg-slate-100 font-bold text-slate-900" : ""}`}
+                              className={`px-4 py-2 text-[16px] text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition cursor-pointer flex items-center justify-between ${selectedTimezoneValue === t.value ? "bg-slate-100 font-bold text-slate-900" : ""}`}
                             >
                               <span className="truncate">{t.label}</span>
                             </div>
@@ -455,7 +484,9 @@ export default function Register() {
                       className="w-1/2 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-base outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 transition"
                     >
                       {GLOBAL_MONTHS.map((m) => (
-                        <option key={m.value} value={m.value}>{m.label}</option>
+                        <option key={m.value} value={m.value}>
+                          {m.label}
+                        </option>
                       ))}
                     </select>
                     <select
@@ -464,13 +495,22 @@ export default function Register() {
                       className="w-1/2 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-base outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 transition"
                     >
                       {getDaysInMonth(startMonth).map((d) => (
-                        <option key={d} value={d}>{d}</option>
+                        <option key={d} value={d}>
+                          {d}
+                        </option>
                       ))}
                     </select>
                   </div>
-                  <input type="hidden" {...register("residencyPeriodStart", { required: "Start Date is required" })} />
+                  <input
+                    type="hidden"
+                    {...register("residencyPeriodStart", {
+                      required: "Start Date is required",
+                    })}
+                  />
                   {errors.residencyPeriodStart && (
-                    <p className="text-red-500 text-xs mt-1">{errors.residencyPeriodStart.message}</p>
+                    <p className="text-red-500 text-xs mt-1">
+                      {errors.residencyPeriodStart.message}
+                    </p>
                   )}
                 </div>
 
@@ -482,35 +522,50 @@ export default function Register() {
                   <div className="flex gap-2">
                     <select
                       value={endMonth}
-                      onChange={(e) => setEndMonth(e.target.value)}
+                      onChange={(e) => {
+                        setEndMonth(e.target.value);
+                        setEndTouched(true);
+                      }}
                       className="w-1/2 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-base outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 transition"
                     >
                       {GLOBAL_MONTHS.map((m) => (
-                        <option key={m.value} value={m.value}>{m.label}</option>
+                        <option key={m.value} value={m.value}>
+                          {m.label}
+                        </option>
                       ))}
                     </select>
                     <select
                       value={endDay}
-                      onChange={(e) => setEndDay(e.target.value)}
+                      onChange={(e) => {
+                        setEndDay(e.target.value);
+                        setEndTouched(true);
+                      }}
                       className="w-1/2 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-base outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 transition"
                     >
                       {getDaysInMonth(endMonth).map((d) => (
-                        <option key={d} value={d}>{d}</option>
+                        <option key={d} value={d}>
+                          {d}
+                        </option>
                       ))}
                     </select>
                   </div>
-                  <input 
-                    type="hidden" 
-                    {...register("residencyPeriodEnd", { 
+                  <input
+                    type="hidden"
+                    {...register("residencyPeriodEnd", {
                       required: "End Date is required",
                       validate: {
-                        afterStart: (v) => new Date(v) > new Date(periodStartValue) || "End date must be after the start date"
-                      }
-                    })} 
+                        afterStart: (v) =>
+                          new Date(v) > new Date(periodStartValue) ||
+                          "End date must be after the start date",
+                      },
+                    })}
                   />
-                  {errors.residencyPeriodEnd && (
-                    <p className="text-red-500 text-xs mt-1">{errors.residencyPeriodEnd.message}</p>
-                  )}
+                  {errors.residencyPeriodEnd &&
+                    (touchedFields.residencyPeriodEnd || endTouched) && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.residencyPeriodEnd.message}
+                      </p>
+                    )}
                 </div>
               </div>
             </div>

@@ -119,18 +119,18 @@ export default function Analytics() {
         </div>
 
         <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm">
-          <p className="text-base text-slate-500">International Days</p>
+          <p className="text-base text-slate-500">Abroad Days</p>
           <h2 className="text-4xl font-bold text-blue-600 mt-3">
             {internationalDays}
           </h2>
         </div>
 
-        <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm">
+        {/* <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm">
           <p className="text-base text-slate-500">Countries Visited</p>
           <h2 className="text-4xl font-bold text-purple-600 mt-3">
             {new Set(records.map((r) => r.toCountry).filter(Boolean)).size}
           </h2>
-        </div>
+        </div> */}
 
         <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm">
           <p className="text-base text-slate-500">Residency Progress</p>
@@ -166,7 +166,7 @@ export default function Analytics() {
 
           <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
             <label className="text-xs font-bold text-slate-600 uppercase tracking-wider whitespace-nowrap">
-              Select Jurisdiction:
+              Select Country:
             </label>
             <select
               value={targetDropdownSelectionCode}
@@ -175,7 +175,9 @@ export default function Analytics() {
             >
               {Object.keys(countryDaysMap).map((code) => (
                 <option key={code} value={code}>
-                  {code} - {getFullCountryName(code)}
+                  {code === "ABROAD"
+                    ? "MANUAL ENTRY"
+                    : `${code} - ${getFullCountryName(code)}`}
                 </option>
               ))}
             </select>
@@ -186,7 +188,9 @@ export default function Analytics() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
             <div className="flex items-center gap-2">
               <span className="px-2.5 py-0.5 rounded-md bg-blue-800 text-white font-bold text-xs uppercase tracking-wider">
-                {targetDropdownSelectionCode}
+                {targetDropdownSelectionCode === "ABROAD"
+                  ? "MANUAL ENTRY"
+                  : targetDropdownSelectionCode}
               </span>
               <span className="text-xs font-bold text-slate-700">
                 {isActivePrimaryBase

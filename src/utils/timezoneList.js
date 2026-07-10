@@ -10,3 +10,8 @@ export const timezones = moment.tz.names()
     };
   })
   .sort((a, b) => a.label.localeCompare(b.label));
+export const getTimezoneByCountry = (countryCode) => {
+  const zones = moment.tz.zonesForCountry(countryCode);
+
+  return zones && zones.length > 0 ? zones[0] : "";
+};

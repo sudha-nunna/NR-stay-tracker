@@ -19,7 +19,7 @@ export default function DaysPieChart({ homeDays, internationalDays }) {
   }
   const data = [
     { name: "Home Stay", value: homeDays },
-    { name: "International Stay", value: internationalDays },
+    { name: "Abroad Stay", value: internationalDays },
   ];
 
   const COLORS = ["#10B981", "#3B82F6"];
@@ -27,7 +27,7 @@ export default function DaysPieChart({ homeDays, internationalDays }) {
   return (
     <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xl h-[300px] flex flex-col">
       <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-4">
-        Stay Distribution across Home and International Destinations
+        Stay Distribution across Home Vs Abroad Destinations
       </h3>
       <div className="flex-1 min-h-0">
         <ResponsiveContainer width="100%" height="100%">

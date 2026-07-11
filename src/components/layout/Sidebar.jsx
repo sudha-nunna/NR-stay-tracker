@@ -46,7 +46,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
       )}
 
       <aside
-        className={`fixed h-screen left-0 bottom-0 top-0 w-64 bg-gradient-to-b from-[#1d41a7] via-[#312e81] to-[#581c87] border-r border-white/10 flex flex-col z-50 md:z-40 shadow-2xl transition-transform duration-300 ease-in-out ${
+        className={`fixed inset-y-0 left-0 w-64 min-h-full bg-gradient-to-b from-[#1d41a7] via-[#312e81] to-[#581c87] border-r border-white/10 flex flex-col z-50 md:z-40 shadow-2xl transition-transform duration-300 ease-in-out ${
           isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         }`}
       >

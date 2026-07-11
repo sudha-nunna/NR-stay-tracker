@@ -659,7 +659,7 @@ export default function Register() {
       confirmPassword: "",
       timezone: "",
       homeCountry: "",
-      residencyThreshold: "183", // Default set to 183
+      residencyThreshold: "183",
       residencyPeriodStart: "",
       residencyPeriodEnd: "",
     },
@@ -804,7 +804,7 @@ export default function Register() {
     setTimezoneSearchQuery("");
   };
 
- const onSubmit = async (data) => {
+  const onSubmit = async (data) => {
     setLoading(true);
     try {
       await registerUser(data.email, data.password, {
@@ -815,7 +815,7 @@ export default function Register() {
         residencyPeriodStart: data.residencyPeriodStart,
         residencyPeriodEnd: data.residencyPeriodEnd,
         // Added these two lines so dashboard calculation gets valid dates immediately
-        fyStart: data.residencyPeriodStart, 
+        fyStart: data.residencyPeriodStart,
         fyEnd: data.residencyPeriodEnd,
       });
       toast.success("Account created successfully! Please sign in.");
@@ -840,8 +840,8 @@ export default function Register() {
   };
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-white fixed inset-0">
-     <div className="flex flex-col w-full px-8 md:w-1/2 lg:px-16 pt-10 pb-12 h-full overflow-y-auto no-scrollbar">
+    <div className="flex min-h-screen w-full flex-col overflow-hidden bg-white relative">
+      <div className="flex flex-col w-full px-8 md:w-1/2 lg:px-16 pt-10 pb-12 min-h-full overflow-y-auto no-scrollbar">
         <div className="w-full max-w-xl mx-auto">
           <div className="mb-5 mt-6">
             <h2 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-blue-600 via-purple-600 to-red-500 bg-clip-text text-transparent sm:text-4xl">

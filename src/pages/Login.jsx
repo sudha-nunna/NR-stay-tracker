@@ -1,5 +1,5 @@
 import { useForm } from "react-hook-form";
-import { useEffect} from "react";
+import { useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import { loginUser, resetPassword } from "../firebase/authService";
@@ -73,9 +73,9 @@ export default function Login() {
   };
 
   return (
-   <div className="flex h-screen w-screen overflow-hidden bg-white fixed inset-0">
+    <div className="flex min-h-screen w-full flex-col md:flex-row overflow-hidden bg-white relative">
       {/* LEFT SIDE: Split-screen Image and Mask Overlay Panel */}
-      <div className="hidden md:block md:w-1/2 h-full relative">
+      <div className="hidden md:block md:w-1/2 min-h-full relative">
         <img
           src={backgroundimg}
           className="absolute inset-0 w-full h-full object-cover"

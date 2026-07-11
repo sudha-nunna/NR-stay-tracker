@@ -17,22 +17,22 @@
 
 //   return (
 //     <div className="min-h-screen w-screen bg-slate-50 relative flex flex-col antialiased font-sans">
-      
+
 //       {/* 1. Navbar: Wire handler parameter function triggers overlay toggles */}
 //       <Navbar onMenuToggle={() => setMobileMenuOpen(!mobileMenuOpen)} />
-      
+
 //       <div className="flex flex-1 pt-16 relative z-10">
-        
+
 //         {/* 2. Sidebar: Pass active boolean state switches with visibility locks */}
 //         <Sidebar isOpen={mobileMenuOpen} setIsOpen={setMobileMenuOpen} />
-        
+
 //         {/* 3. Main Content: Adjusted margin spacers dynamically to fluid scale screen frames */}
 //         <main className="pt-24 p-4 md:p-8 md:ml-64 w-full transition-all duration-300 pb-8 min-w-0">
 //           <div className="max-w-7xl mx-auto">
 //             <Outlet />
 //           </div>
 //         </main>
-        
+
 //       </div>
 //     </div>
 //   );
@@ -57,7 +57,6 @@
 //   );
 // }
 
-
 import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { ProtectedRoute } from "./ProtectedRoute";
 import Navbar from "../components/layout/Navbar";
@@ -75,16 +74,12 @@ function MainLayoutShell() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <div className="min-h-screen w-screen bg-slate-50 relative flex flex-col antialiased font-sans">
-      
+    <div className="min-h-screen w-full min-w-0 bg-slate-50 relative flex flex-col antialiased font-sans">
       {/* Navbar */}
       <Navbar onMenuToggle={() => setMobileMenuOpen(!mobileMenuOpen)} />
 
       {/* Sidebar */}
-      <Sidebar
-        isOpen={mobileMenuOpen}
-        setIsOpen={setMobileMenuOpen}
-      />
+      <Sidebar isOpen={mobileMenuOpen} setIsOpen={setMobileMenuOpen} />
 
       {/* Main Content */}
       <main
@@ -102,7 +97,6 @@ function MainLayoutShell() {
           <Outlet />
         </div>
       </main>
-
     </div>
   );
 }

@@ -87,7 +87,7 @@ export default function StayCalendar({
 
   return (
     <div
-      className="bg-white rounded-3xl space-y-4 w-full mx-auto border border-slate-200/80 p-4 sm:p-6 shadow-sm"
+      className="bg-white rounded-3xl space-y-4 w-full mx-auto border border-slate-200/80 p-2 sm:p-6 shadow-sm"
       id="stay-calendar-section"
     >
       {/* Structural Header Navigation Frame */}
@@ -165,7 +165,7 @@ export default function StayCalendar({
           <div className="w-3 h-3 bg-blue-50 rounded-sm border border-blue-300 flex items-center justify-center text-blue-600">
             <FiGlobe size={8} />
           </div>
-          <span className="text-slate-600 font-semibold">
+          <span className="text-slate-500 font-semibold">
             Abroad(click to set Abroad)
           </span>
         </div>
@@ -173,7 +173,7 @@ export default function StayCalendar({
           <div className="w-3 h-3 bg-emerald-50 rounded-sm border border-emerald-300 flex items-center justify-center text-emerald-600">
             <FiHome size={8} />
           </div>
-          <span className="text-slate-600 font-semibold">
+          <span className="text-slate-500 font-semibold">
             Home(double click to set home)
           </span>
         </div>
@@ -182,7 +182,7 @@ export default function StayCalendar({
           <div className="w-3 h-3 bg-slate-50 border border-slate-200 text-slate-300 flex items-center justify-center">
             <FiCalendar size={8} />
           </div>
-          <span className="text-slate-600 font-semibold">Locked(future days)</span>
+          <span className="text-slate-500 font-semibold">Locked(future days)</span>
         </div>
       </div>
 

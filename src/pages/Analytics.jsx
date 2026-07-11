@@ -147,8 +147,7 @@ export default function Analytics() {
         </div>
       </div>
       
-      {/* MULTI-OFFICE SPLIT JOURNEY PLANNER (SUCCESSFULLY MOVED TO THE BOTTOM OF ANALYTICS) */}
-      {/* Safari Mobile layout compatibility: added w-full, overflow-hidden and flex-wrap controls */}
+      {/* MULTI-OFFICE SPLIT JOURNEY PLANNER */}
       <div className="bg-gradient-to-br from-green-100 to-indigo-100 border border-slate-200 rounded-3xl p-6 shadow-sm w-full overflow-hidden">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4 mb-6 w-full flex-wrap sm:flex-nowrap">
           <div className="flex items-center gap-3 min-w-0 max-w-full">
@@ -208,7 +207,6 @@ export default function Analytics() {
             </div>
           </div>
           
-          {/* Safari Mobile Progress Bar Fix: Added explicit height and container wrapper properties */}
           <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden block relative">
             <div
               className={`h-full transition-all duration-500 rounded-full ${isActivePrimaryBase ? "bg-gradient-to-r from-blue-500 to-indigo-600" : activeDaysLogged > 75 ? "bg-red-500" : "bg-purple-500"}`}
@@ -256,9 +254,6 @@ export default function Analytics() {
     </div>
   );
 }
-
-
-
 
 
 // import { useEffect, useState } from "react";

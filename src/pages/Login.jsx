@@ -73,9 +73,9 @@ export default function Login() {
   };
 
   return (
-    <div className="flex min-h-screen bg-white">
+   <div className="flex h-screen w-screen overflow-hidden bg-white fixed inset-0">
       {/* LEFT SIDE: Split-screen Image and Mask Overlay Panel */}
-      <div className="hidden md:block md:w-1/2 relative">
+      <div className="hidden md:block md:w-1/2 h-full relative">
         <img
           src={backgroundimg}
           className="absolute inset-0 w-full h-full object-cover"
@@ -101,7 +101,7 @@ export default function Login() {
       </div>
 
       {/* RIGHT SIDE: Login Form Panel */}
-      <div className="flex flex-col justify-center w-full px-8 md:w-1/2 lg:px-16 py-12 max-h-screen overflow-y-auto no-scrollbar">
+      <div className="flex flex-col justify-center w-full px-8 md:w-1/2 lg:px-16 py-6 h-full overflow-y-auto no-scrollbar">
         <div className="w-full max-w-md mx-auto">
           <div className="mb-6 text-center md:text-left">
             <h2 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-blue-600 via-purple-600 to-red-500 bg-clip-text text-transparent sm:text-4xl">

@@ -4,6 +4,7 @@ import {
   signInWithEmailAndPassword,
   signOut,
   sendPasswordResetEmail,
+  fetchSignInMethodsForEmail,
 } from "firebase/auth";
 import {
   doc,
@@ -162,4 +163,14 @@ export const getUserProfile = async (uid) => {
     }
   }
   throw new Error("User profile data structure could not be resolved.");
+};
+export const checkEmailExists = async (email) => {
+  const normalizedEmail = email.trim().toLowerCase();
+
+  const usersRef = collection(db, "users");
+  const q = query(usersRef, where("email", "==", normalizedEmail));
+
+  const querySnapshot = await getDocs(q);
+
+  return !querySnapshot.empty;
 };

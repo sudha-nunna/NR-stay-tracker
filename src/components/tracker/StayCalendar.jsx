@@ -91,15 +91,15 @@ export default function StayCalendar({
       id="stay-calendar-section"
     >
       {/* Structural Header Navigation Frame */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 ml-2">
         <div>
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="text-lg font-bold text-slate-950 tracking-tight">
               Travel Calendar
             </h2>
-            <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 text-[11px] font-semibold border border-blue-100 shrink-0">
+            {/* <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 text-[11px] font-semibold border border-blue-100 shrink-0">
               {travelRecords.length} Records Added
-            </span>
+            </span> */}
           </div>
           <p className="text-slate-500 text-[16px] mt-0.5">
             Track your Home and Abroad stays across the selected period.

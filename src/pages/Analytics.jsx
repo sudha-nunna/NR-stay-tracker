@@ -65,32 +65,45 @@ export default function Analytics() {
   // Pre-calculate multi-country maps inside the analytics data framework
   const primaryCountryCode =
     profile?.homeCountry || profile?.nativeCountry || "IN";
-  const countryDaysMap = { [primaryCountryCode]: 0 };
+
+  const countryDaysMap = {
+    [primaryCountryCode]: calculation.homeDays || 0,
+  };
 
   if (hasValidTravelRecords) {
     records.forEach((r) => {
       if (!r.departureDate || !r.arrivalDate || !r.toCountry) return;
+
+      const targetCountry = r.toCountry.toUpperCase();
+
+      if (targetCountry === primaryCountryCode.toUpperCase()) {
+        return; // already covered by calculation.homeDays
+      }
+
       const d1 = new Date(r.departureDate);
       const d2 = new Date(r.arrivalDate);
-      const diffDays = Math.max(
-        1,
-        Math.round(Math.abs((d2 - d1) / (24 * 60 * 60 * 1000))) + 1,
-      );
-      countryDaysMap[r.toCountry] =
-        (countryDaysMap[r.toCountry] || 0) + diffDays;
+
+      const diffDays = Math.floor((d2 - d1) / (24 * 60 * 60 * 1000)) + 1;
+
+      countryDaysMap[targetCountry] =
+        (countryDaysMap[targetCountry] || 0) + Math.max(diffDays, 1);
     });
   }
 
   const targetDropdownSelectionCode = selectedCountryCode || primaryCountryCode;
   const activeDaysLogged = countryDaysMap[targetDropdownSelectionCode] || 0;
+  const totalStayDays = homeDays + internationalDays;
   const isActivePrimaryBase =
     targetDropdownSelectionCode === primaryCountryCode;
-  const activeLocalThreshold = isActivePrimaryBase ? definedMilestone : 90;
-  const activeAllocatedPercentage = Math.min(
-    Math.round((activeDaysLogged / activeLocalThreshold) * 100),
-    100,
-  );
+  
+  const activeLocalThreshold = isActivePrimaryBase
+  ? definedMilestone
+  : Math.max(...Object.values(countryDaysMap), 1);
 
+const activeAllocatedPercentage = Math.min(
+  Math.round((activeDaysLogged / activeLocalThreshold) * 100),
+  100,
+);
   return (
     <div className="space-y-6 relative z-10 text-left">
       <div className="flex items-center justify-between">
@@ -146,7 +159,7 @@ export default function Analytics() {
           </h2>
         </div>
       </div>
-      
+
       {/* MULTI-OFFICE SPLIT JOURNEY PLANNER */}
       <div className="bg-gradient-to-br from-green-100 to-indigo-100 border border-slate-200 rounded-3xl p-6 shadow-sm w-full overflow-hidden">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4 mb-6 w-full flex-wrap sm:flex-nowrap">
@@ -203,29 +216,37 @@ export default function Analytics() {
               <span className="text-slate-900 font-bold">
                 {activeDaysLogged}
               </span>{" "}
-              / {activeLocalThreshold} Days Logged
+              Days Stayed
             </div>
           </div>
-          
+
           <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden block relative">
             <div
               className={`h-full transition-all duration-500 rounded-full ${isActivePrimaryBase ? "bg-gradient-to-r from-blue-500 to-indigo-600" : activeDaysLogged > 75 ? "bg-red-500" : "bg-purple-500"}`}
               style={{ width: `${activeAllocatedPercentage}%` }}
             ></div>
           </div>
-          
+
           <div className="mt-2 text-[11px] text-slate-500 font-medium flex flex-col sm:flex-row justify-between gap-1 w-full">
             <span className="break-words">
-              {isActivePrimaryBase
-                ? activeDaysLogged >= activeLocalThreshold
-                  ? "✓ Status locked. Safe to depart to global satellite offices."
-                  : `Requires ${activeLocalThreshold - activeDaysLogged} more days here to secure primary residency.`
-                : activeDaysLogged > 75
-                  ? "⚠️ Proximity Alert: Approaching local physical stay cap rules. Plan exit soon."
-                  : `Safe Zone: You can comfortably spend up to ${activeLocalThreshold - activeDaysLogged} more days at this office.`}
+              Total days recorded in{" "}
+              <strong>{getFullCountryName(targetDropdownSelectionCode)}</strong>{" "}
+              : <strong>{activeDaysLogged}</strong> Days
             </span>
-            <span className="italic text-slate-400 shrink-0 whitespace-nowrap align-self-end">
-              {activeAllocatedPercentage}% Capacity Utilized
+
+            {/* <span className="italic text-slate-400 shrink-0 whitespace-nowrap">
+              {activeAllocatedPercentage}% of highest stay
+            </span> */}
+          </div>
+        </div>
+        <div className="mt-4 pt-3 border-t border-slate-200">
+          <div className="flex items-center gap-3 text-sm">
+            <span className="font-semibold text-slate-600">
+              All Countries Total Stay Days
+            </span>
+
+            <span className="font-bold text-slate-900">
+              {totalStayDays} Days
             </span>
           </div>
         </div>
@@ -254,7 +275,6 @@ export default function Analytics() {
     </div>
   );
 }
-
 
 // import { useEffect, useState } from "react";
 // import { useAuth } from "../context/AuthContext";

@@ -2,11 +2,16 @@ import { useForm } from "react-hook-form";
 import { useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import toast from "react-hot-toast";
-import { loginUser, resetPassword } from "../firebase/authService";
+import {
+  loginUser,
+  resetPassword,
+  checkEmailExists,
+} from "../firebase/authService";
 import { useState } from "react";
 import { BiLoaderAlt } from "react-icons/bi";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import backgroundimg from "../assets/loginpageimages.jpg";
+
 export default function Login() {
   const {
     register,
@@ -65,13 +70,26 @@ export default function Login() {
     if (!email) return;
 
     try {
+      const emailExists = await checkEmailExists(email);
+
+      if (!emailExists) {
+        toast.error(
+          "No account found with this email address. Please register first.",
+        );
+        return;
+      }
+
       await resetPassword(email);
-      toast.success("Password reset link sent to your email.");
+
+      toast.success(
+        "Password reset instructions have been sent to your email.",
+      );
     } catch (error) {
-      toast.error(error.message || "Unable to send password reset email.");
+      console.error("[Forgot Password Error]", error);
+
+      toast.error(error?.message || "Unable to send password reset email.");
     }
   };
-
   return (
     <div className="flex min-h-screen w-full flex-col md:flex-row overflow-hidden bg-white relative">
       {/* LEFT SIDE: Split-screen Image and Mask Overlay Panel */}
@@ -122,7 +140,8 @@ export default function Login() {
                 {...register("email", {
                   required: "Email address is required",
                   pattern: {
-                    value: /^[a-z0-9._%+-]+@[a-z]+([.-]?[a-z]+)*\.[a-z]{2,}$/i,
+                    value:
+                      /^[a-z0-9._%+-]+@[a-z0-9-]+(\.[a-z0-9-]+)*\.[a-z]{2,}$/i,
                     message:
                       "Please enter a valid email address (e.g. user@gmail.com or user@companyname.io)",
                   },

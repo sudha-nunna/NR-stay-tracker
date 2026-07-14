@@ -132,8 +132,6 @@
 //   );
 // }
 
-
-
 import { FiTrash2, FiGlobe, FiEdit2 } from "react-icons/fi";
 import { formatDate, calculateDaysBetween } from "../../utils/dateHelpers";
 import { useState } from "react";
@@ -166,20 +164,33 @@ export default function TravelTable({ records, onDelete, onEdit }) {
   );
 
   return (
-    <div className="bg-white border border-slate-200 shadow-sm rounded-2xl overflow-hidden w-full max-w-full block">
-      {/* FIXED: isolated layout containing blocks to stop layout shifts in Safari Mobile */}
-      <div className="w-full max-w-full overflow-x-auto overflow-y-auto max-h-[600px] scrollbar-thin scrollbar-thumb-slate-200 active:scrollbar-thumb-slate-300 touch-auto block">
+    // <div className="bg-white border border-slate-200 shadow-sm rounded-2xl overflow-hidden w-full max-w-full block">
+    //   {/* FIXED: isolated layout containing blocks to stop layout shifts in Safari Mobile */}
+    //   <div className="w-full max-w-full overflow-x-auto overflow-y-auto max-h-[600px] scrollbar-thin scrollbar-thumb-slate-200 active:scrollbar-thumb-slate-300 touch-auto block">
+    <div className="bg-white border border-slate-200 shadow-sm rounded-2xl w-full max-w-full overflow-x-auto block select-none">
+      {/* CHANGED: Switched to strict inline-block layout matrix with touch-pan-x configuration to lock down gesture physics inside the data container */}
+      <div className="w-full min-w-full inline-block align-middle overflow-x-auto overflow-y-auto max-h-[600px] scrollbar-thin scrollbar-thumb-slate-200 active:scrollbar-thumb-slate-300 touch-pan-x">
         <table className="w-full border-collapse text-left text-base min-w-[700px] table-auto">
           <thead className="bg-slate-50 border-b border-slate-200 text-slate-400 text-[10px] uppercase font-bold tracking-wider sticky top-0 z-20 shadow-[0_1px_0_0_rgba(226,232,240,1)]">
             <tr>
               <th className="px-6 py-3.5 sticky left-0 bg-slate-50 md:relative z-30 border-b border-slate-200">
                 Global Route Transition
               </th>
-              <th className="px-6 py-3.5 border-b border-slate-200">Departure Track</th>
-              <th className="px-6 py-3.5 border-b border-slate-200">Arrival Track</th>
-              <th className="px-6 py-3.5 border-b border-slate-200">Span Range</th>
-              <th className="px-6 py-3.5 border-b border-slate-200">Logging Context</th>
-              <th className="px-6 py-3.5 text-right border-b border-slate-200">Actions</th>
+              <th className="px-6 py-3.5 border-b border-slate-200">
+                Departure Track
+              </th>
+              <th className="px-6 py-3.5 border-b border-slate-200">
+                Arrival Track
+              </th>
+              <th className="px-6 py-3.5 border-b border-slate-200">
+                Span Range
+              </th>
+              <th className="px-6 py-3.5 border-b border-slate-200">
+                Logging Context
+              </th>
+              <th className="px-6 py-3.5 text-right border-b border-slate-200">
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 text-slate-700 font-medium text-xs">
@@ -189,12 +200,24 @@ export default function TravelTable({ records, onDelete, onEdit }) {
                 className="hover:bg-slate-50/50 transition-colors"
               >
                 {/* FIXED: Enforced strict white background and absolute block layouts inside sticky table cell bounds for Safari */}
-                <td className="px-6 py-4 text-slate-900 font-bold sticky left-0 bg-white md:relative z-10 whitespace-nowrap shadow-[4px_0_12px_-4px_rgba(0,0,0,0.08)] md:shadow-none">
+                {/* <td className="px-6 py-4 text-slate-900 font-bold sticky left-0 bg-white md:relative z-10 whitespace-nowrap shadow-[4px_0_12px_-4px_rgba(0,0,0,0.08)] md:shadow-none">
                   <span className="px-2 py-0.5 bg-slate-100 border border-slate-200 rounded text-slate-700 mr-1.5 uppercase text-base inline-block">
                     {r.fromCountry}
                   </span>
                   <span className="text-slate-400 font-normal inline-block align-middle">&rarr;</span>
                   <span className="px-2 py-0.5 bg-blue-50 border border-blue-100 rounded text-blue-700 ml-1.5 uppercase text-base inline-block">
+                    {r.toCountry}
+                  </span>
+                </td> */}
+                {/* CHANGED: Restored identical text layout sizes (text-[10px] sm:text-xs) from original code to eliminate enlarged fonts in Safari mobile viewports */}
+                <td className="px-6 py-4 text-slate-900 font-bold sticky left-0 bg-white/95 backdrop-blur-xs md:relative z-10 whitespace-nowrap shadow-[4px_0_24px_-4px_rgba(0,0,0,0.05)] md:shadow-none">
+                  <span className="px-2 py-0.5 bg-slate-100 border border-slate-200 rounded text-slate-700 mr-1.5 uppercase text-[10px] sm:text-xs inline-block">
+                    {r.fromCountry}
+                  </span>
+                  <span className="text-slate-400 font-normal inline-block align-middle">
+                    &rarr;
+                  </span>
+                  <span className="px-2 py-0.5 bg-blue-50 border border-blue-100 rounded text-blue-700 ml-1.5 uppercase text-[10px] sm:text-xs inline-block">
                     {r.toCountry}
                   </span>
                 </td>

@@ -42,9 +42,12 @@ export default function TravelForm({
   const fromRef = useRef(null);
   const toRef = useRef(null);
 
-  // Strict Track Period Constraints (April 1, 2026 to March 31, 2027)
-  const minTrackDate = "2026-04-01";
-  const maxTrackDate = "2027-03-31";
+  // Define tracking period limits based on user settings
+  const periodStartStr = "2026-04-01";
+  const periodEndStr = "2027-03-31";
+  
+  // Today's actual date string snapshot format
+  const todayStr = new Date().toISOString().split("T")[0];
 
   // Dynamic state context tracking validation mechanism
   useEffect(() => {
@@ -321,15 +324,18 @@ export default function TravelForm({
             onBlur={(e) => {
               if (!e.target.value) e.target.type = "text";
             }}
-            min={minTrackDate}
-            max={maxTrackDate}
+            min={periodStartStr}
+            max={todayStr < periodEndStr ? todayStr : periodEndStr}
             onKeyDown={(e) => e.preventDefault()}
             {...register("departureDate", {
               required: "Please select your travel start date.",
               validate: {
-                withinTrackingPeriod: (value) =>
-                  (value >= minTrackDate && value <= maxTrackDate) ||
-                  "Date must be within April 1, 2026 and March 31, 2027.",
+                withinPeriod: (value) =>
+                  (value >= periodStartStr && value <= periodEndStr) ||
+                  "Date must be within April 2026 to March 2027.",
+                noFutureDays: (value) =>
+                  value <= todayStr ||
+                  "Future travel records cannot be logged ahead of time.",
               },
             })}
             className={`w-full px-3 py-2 bg-slate-50 border text-slate-900 rounded-lg text-base focus:bg-white outline-none transition placeholder-slate-400 h-[42px] ${
@@ -357,15 +363,18 @@ export default function TravelForm({
             onBlur={(e) => {
               if (!e.target.value) e.target.type = "text";
             }}
-            min={minTrackDate}
-            max={maxTrackDate}
+            min={periodStartStr}
+            max={todayStr < periodEndStr ? todayStr : periodEndStr}
             onKeyDown={(e) => e.preventDefault()}
             {...register("arrivalDate", {
               required: "Please select your travel end date.",
               validate: {
-                withinTrackingPeriod: (value) =>
-                  (value >= minTrackDate && value <= maxTrackDate) ||
-                  "Date must be within April 1, 2026 and March 31, 2027.",
+                withinPeriod: (value) =>
+                  (value >= periodStartStr && value <= periodEndStr) ||
+                  "Date must be within April 2026 to March 2027.",
+                noFutureDays: (value) =>
+                  value <= todayStr ||
+                  "Future travel records cannot be logged ahead of time.",
                 chronologicalOrder: (value) =>
                   !watchedDepartureDate ||
                   value >= watchedDepartureDate ||

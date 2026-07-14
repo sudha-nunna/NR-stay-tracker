@@ -319,6 +319,7 @@ export default function TravelForm({
           </label>
           <input
             type="date"
+            placeholder="01/01/2026"
             max={todayStr}
             onKeyDown={(e) => e.preventDefault()}
             {...register("departureDate", {
@@ -349,6 +350,7 @@ export default function TravelForm({
           </label>
           <input
             type="date"
+            placeholder="31/12/2026"
             max={todayStr}
             onKeyDown={(e) => e.preventDefault()}
             {...register("arrivalDate", {

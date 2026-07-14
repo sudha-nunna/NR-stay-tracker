@@ -31,7 +31,6 @@ export default function TravelForm({
   const watchedFromCountry = watch("fromCountry");
   const watchedToCountry = watch("toCountry");
   const watchedDepartureDate = watch("departureDate");
-  const watchedArrivalDate = watch("arrivalDate");
 
   // Search filter options layout state handling mechanisms
   const [searchFrom, setSearchFrom] = useState("");
@@ -130,7 +129,7 @@ export default function TravelForm({
       toast.error(
         "A travel record already exists within the selected date range.",
       );
-      return; // STOPS HERE
+      return;
     }
 
     await onSubmit(data);
@@ -156,9 +155,9 @@ export default function TravelForm({
         )}
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full min-w-0">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {/* Origin Country Dropdown Selection Field */}
-        <div className="relative min-w-0 w-full" ref={fromRef}>
+        <div className="relative" ref={fromRef}>
           <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
             Leaving From
           </label>
@@ -171,17 +170,15 @@ export default function TravelForm({
 
           <div
             onClick={() => setIsOpenFrom(!isOpenFrom)}
-            className={`w-full min-w-0 flex items-center justify-between px-3 py-2 bg-slate-50 border text-slate-900 rounded-lg text-base transition cursor-pointer outline-none ${
+            className={`w-full flex items-center justify-between px-3 py-2 bg-slate-50 border text-slate-900 rounded-lg text-base transition cursor-pointer outline-none ${
               errors.fromCountry
                 ? "border-red-400 focus-within:ring-red-200"
                 : "border-slate-200 focus-within:ring-blue-500"
             }`}
           >
-            <span className="truncate pr-2 text-left block flex-1 w-0">
-              {currentFromLabel}
-            </span>
+            <span className="truncate">{currentFromLabel}</span>
             <FiChevronDown
-              className={`text-slate-400 flex-shrink-0 transition-transform duration-200 ${
+              className={`text-slate-400 transition-transform duration-200 ${
                 isOpenFrom ? "rotate-180" : ""
               }`}
             />
@@ -236,7 +233,7 @@ export default function TravelForm({
         </div>
 
         {/* Destination Dropdown Selection Field */}
-        <div className="relative min-w-0 w-full" ref={toRef}>
+        <div className="relative" ref={toRef}>
           <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
             Going To
           </label>
@@ -249,17 +246,15 @@ export default function TravelForm({
 
           <div
             onClick={() => setIsOpenTo(!isOpenTo)}
-            className={`w-full min-w-0 flex items-center justify-between px-3 py-2 bg-slate-50 border text-slate-900 rounded-lg text-base transition cursor-pointer outline-none ${
+            className={`w-full flex items-center justify-between px-3 py-2 bg-slate-50 border text-slate-900 rounded-lg text-base transition cursor-pointer outline-none ${
               errors.toCountry
                 ? "border-red-400 focus-within:ring-red-200"
                 : "border-slate-200 focus-within:ring-blue-500"
             }`}
           >
-            <span className="truncate pr-2 text-left block flex-1 w-0">
-              {currentToLabel}
-            </span>
+            <span className="truncate">{currentToLabel}</span>
             <FiChevronDown
-              className={`text-slate-400 flex-shrink-0 transition-transform duration-200 ${
+              className={`text-slate-400 transition-transform duration-200 ${
                 isOpenTo ? "rotate-180" : ""
               }`}
             />
@@ -314,7 +309,7 @@ export default function TravelForm({
         </div>
 
         {/* Travel Start Date Picker Component Block */}
-        <div className="min-w-0 w-full flex flex-col">
+        <div>
           <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
             Travel Start Date
           </label>
@@ -330,21 +325,21 @@ export default function TravelForm({
                   "Future travel records cannot be logged ahead of time.",
               },
             })}
-            className={`w-full min-w-0 block h-[42px] px-3 py-2 bg-slate-50 border rounded-lg text-base focus:bg-white outline-none transition text-left text-slate-900 dark:[color-scheme:light] ${
+            className={`w-full px-3 py-2 bg-slate-50 border text-slate-900 rounded-lg text-base focus:bg-white outline-none transition ${
               errors.departureDate
                 ? "border-red-400 focus:ring-2 focus:ring-red-200"
                 : "border-slate-200 focus:ring-2 focus:ring-blue-500"
             }`}
           />
           {errors.departureDate && (
-            <p className="text-red-500 text-[11px] mt-1 font-medium truncate">
+            <p className="text-red-500 text-[11px] mt-1 font-medium">
               {errors.departureDate.message}
             </p>
           )}
         </div>
 
         {/* Travel End Date Picker Component Block */}
-        <div className="min-w-0 w-full flex flex-col">
+        <div>
           <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
             Travel End Date
           </label>
@@ -364,21 +359,21 @@ export default function TravelForm({
                   "Travel end date must be on or after the start date.",
               },
             })}
-            className={`w-full min-w-0 block h-[42px] px-3 py-2 bg-slate-50 border rounded-lg text-base focus:bg-white outline-none transition text-left text-slate-900 dark:[color-scheme:light] ${
+            className={`w-full px-3 py-2 bg-slate-50 border text-slate-900 rounded-lg text-base focus:bg-white outline-none transition ${
               errors.arrivalDate
                 ? "border-red-400 focus:ring-2 focus:ring-red-200"
                 : "border-slate-200 focus:ring-2 focus:ring-blue-500"
             }`}
           />
           {errors.arrivalDate && (
-            <p className="text-red-500 text-[11px] mt-1 font-medium truncate">
+            <p className="text-red-500 text-[11px] mt-1 font-medium">
               {errors.arrivalDate.message}
             </p>
           )}
         </div>
 
         {/* Reason for Travel Field Block */}
-        <div className="sm:col-span-2 min-w-0 w-full">
+        <div className="sm:col-span-2">
           <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
             Reason for Travel
           </label>
@@ -392,7 +387,7 @@ export default function TravelForm({
               },
             })}
             placeholder="Business, leisure, family emergency..."
-            className={`w-full min-w-0 px-3 py-2 bg-slate-50 border text-slate-900 rounded-lg text-base focus:bg-white outline-none transition ${
+            className={`w-full px-3 py-2 bg-slate-50 border text-slate-900 rounded-lg text-base focus:bg-white outline-none transition ${
               errors.purpose
                 ? "border-red-400 focus:ring-2 focus:ring-red-200"
                 : "border-slate-200 focus:ring-2 focus:ring-blue-500"
@@ -406,7 +401,7 @@ export default function TravelForm({
         </div>
       </div>
 
-      <div className="flex items-center justify-end gap-2 pt-2 w-full">
+      <div className="flex items-center justify-end gap-2 pt-2">
         {onCancel && (
           <button
             type="button"
@@ -418,7 +413,7 @@ export default function TravelForm({
         )}
         <button
           type="submit"
-          className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-xs font-bold rounded-lg shadow transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+          className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-xs font-bold rounded-lg shadow transition-all flex items-center gap-1.5 cursor-pointer"
         >
           {initialData ? <FiSave /> : <FiPlus />}
           <span>{initialData ? "Update Record" : "Save Record"}</span>

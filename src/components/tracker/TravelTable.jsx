@@ -34,8 +34,11 @@ export default function TravelTable({ records, onDelete, onEdit }) {
       {/* UPDATED: Adjusted container layer with 'overflow-auto' instead of restricting vertical behaviors.
         Added 'touch-auto' layout configuration to enforce standard native vertical and horizontal swipe physics.
       */}
-      <div className="w-full overflow-auto max-h-[600px] scrollbar-thin scrollbar-thumb-slate-200 active:scrollbar-thumb-slate-300 touch-auto">
-        <table className="w-full border-collapse text-left text-base min-w-[700px]">
+      {/* <div className="w-full overflow-auto max-h-[600px] scrollbar-thin scrollbar-thumb-slate-200 active:scrollbar-thumb-slate-300 touch-auto">
+        <table className="w-full border-collapse text-left text-base min-w-[700px]"> */}
+      {/* FIXED: Added overscroll-x-contain and -webkit-overflow-scrolling to isolate horizontal table gestures from Safari body movement */}
+      <div className="w-full overflow-x-auto overflow-y-auto max-h-[600px] overscroll-x-contain [webkit-overflow-scrolling:touch] scrollbar-thin scrollbar-thumb-slate-200 active:scrollbar-thumb-slate-300">
+        <table className="w-full border-collapse text-left text-base min-w-[700px]">  
           <thead className="bg-slate-50 border-b border-slate-200 text-slate-400 text-[10px] uppercase font-bold tracking-wider sticky top-0 z-20 shadow-[0_1px_0_0_rgba(226,232,240,1)]">
             <tr>
               <th className="px-6 py-3.5 sticky left-0 bg-slate-50 md:relative z-30">

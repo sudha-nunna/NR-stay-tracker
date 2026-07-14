@@ -108,7 +108,9 @@ export default function TravelForm({
     });
 
     if (isExactDuplicate) {
-      toast.error("A travel record already exists for these dates,if you want to change data can edit in histrory table.");
+      toast.error(
+        "A travel record already exists for these dates,if you want to change data can edit in histrory table.",
+      );
       return;
     }
 
@@ -287,7 +289,32 @@ export default function TravelForm({
         </div>
 
         {/* Travel Start Date Picker Component Block */}
-        <div>
+
+        <div className="min-w-0 w-full">
+          <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+            Travel Start Date
+          </label>
+          <input
+            type="date"
+            max={todayStr}
+            onKeyDown={(e) => e.preventDefault()}
+            {...register("departureDate", {
+              required: "Please select your travel start date.",
+              validate: {
+                noFutureDays: (value) =>
+                  value <= todayStr ||
+                  "Future travel records cannot be logged ahead of time.",
+              },
+            })}
+            className={`w-full min-w-0 px-3 py-2 bg-slate-50 border text-slate-900 rounded-lg text-base focus:bg-white outline-none transition ${errors.departureDate ? "border-red-400 focus:ring-2 focus:ring-red-200" : "border-slate-200 focus:ring-2 focus:ring-blue-500"}`}
+          />
+          {errors.departureDate && (
+            <p className="text-red-500 text-[11px] mt-1 font-medium truncate">
+              {errors.departureDate.message}
+            </p>
+          )}
+        </div>
+        {/* <div>
           <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
             Travel Start Date
           </label>
@@ -310,10 +337,39 @@ export default function TravelForm({
               {errors.departureDate.message}
             </p>
           )}
-        </div>
+        </div> */}
 
         {/* Travel End Date Picker Component Block */}
-        <div>
+      
+        <div className="min-w-0 w-full">
+          <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+            Travel End Date
+          </label>
+          <input
+            type="date"
+            max={todayStr}
+            onKeyDown={(e) => e.preventDefault()}
+            {...register("arrivalDate", {
+              required: "Please select your travel end date.",
+              validate: {
+                noFutureDays: (value) =>
+                  value <= todayStr ||
+                  "Future travel records cannot be logged ahead of time.",
+                chronologicalOrder: (value) =>
+                  !watchedDepartureDate ||
+                  value >= watchedDepartureDate ||
+                  "Travel end date must be on or after the start date.",
+              },
+            })}
+            className={`w-full min-w-0 px-3 py-2 bg-slate-50 border text-slate-900 rounded-lg text-base focus:bg-white outline-none transition ${errors.arrivalDate ? "border-red-400 focus:ring-2 focus:ring-red-200" : "border-slate-200 focus:ring-2 focus:ring-blue-500"}`}
+          />
+          {errors.arrivalDate && (
+            <p className="text-red-500 text-[11px] mt-1 font-medium truncate">
+              {errors.arrivalDate.message}
+            </p>
+          )}
+        </div>
+        {/* <div>
           <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
             Travel End Date
           </label>
@@ -340,7 +396,7 @@ export default function TravelForm({
               {errors.arrivalDate.message}
             </p>
           )}
-        </div>
+        </div> */}
 
         {/* Reason for Travel Field Block */}
         <div className="sm:col-span-2">

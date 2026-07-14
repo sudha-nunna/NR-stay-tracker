@@ -154,10 +154,12 @@ export default function TravelForm({
           </button>
         )}
       </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full min-w-0">
         {/* Origin Country Dropdown Selection Field */}
-        <div className="relative" ref={fromRef}>
+        <div className="relative min-w-0 w-full" ref={fromRef}>
+          {/* <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* Origin Country Dropdown Selection Field */}
+          {/* <div className="relative" ref={fromRef}> */}
           <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
             Leaving From
           </label>
@@ -340,7 +342,7 @@ export default function TravelForm({
         </div> */}
 
         {/* Travel End Date Picker Component Block */}
-      
+
         <div className="min-w-0 w-full">
           <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
             Travel End Date

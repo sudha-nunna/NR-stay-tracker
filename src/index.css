@@ -19,6 +19,8 @@
       Roboto, "Helvetica Neue", Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    max-width: 100vw;
+    overflow-x: hidden;
   }
 
   #root {
@@ -26,11 +28,13 @@
     min-height: 100dvh;
     background-color: #f8fafc;
     width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
   }
   input,
   select,
   textarea {
-    font-size: 16px;
+    font-size: 16px !important;
   }
 
   @supports (height: 100dvh) {

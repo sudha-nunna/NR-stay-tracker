@@ -84,7 +84,9 @@ function MainLayoutShell() {
       {/* Main Content */}
       <main
         className="
-          pt-28
+          pt-32 
+          sm:pt-36 
+          md:pt-28
           px-4
           pb-8
           md:px-8

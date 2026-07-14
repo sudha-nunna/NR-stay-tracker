@@ -91,9 +91,13 @@ export default function Login() {
     }
   };
   return (
-    <div className="flex min-h-screen w-full flex-col md:flex-row overflow-hidden bg-white relative">
+  /* CHANGED: Switched to dynamic viewport height (min-h-dvh) and added max-h-dvh to lock layout boundaries on mobile devices */
+  <div className="flex min-h-dvh max-h-dvh h-dvh w-full flex-col md:flex-row overflow-hidden bg-white relative">
+  {/* // return (
+  //   <div className="flex min-h-screen w-full flex-col md:flex-row overflow-hidden bg-white relative"> */}
       {/* LEFT SIDE: Split-screen Image and Mask Overlay Panel */}
-      <div className="hidden md:block md:w-1/2 min-h-full relative">
+      {/* <div className="hidden md:block md:w-1/2 min-h-full relative"> */}
+      <div className="hidden md:block md:w-1/2 h-full relative">
         <img
           src={backgroundimg}
           className="absolute inset-0 w-full h-full object-cover"
@@ -119,7 +123,8 @@ export default function Login() {
       </div>
 
       {/* RIGHT SIDE: Login Form Panel */}
-      <div className="flex flex-col justify-center w-full px-8 md:w-1/2 lg:px-16 py-6 h-full overflow-y-auto no-scrollbar">
+      <div className="flex flex-col justify-center w-full px-8 md:w-1/2 lg:px-16 py-6 h-full min-h-0 overflow-y-auto no-scrollbar touch-pan-y">
+      {/* <div className="flex flex-col justify-center w-full px-8 md:w-1/2 lg:px-16 py-6 h-full overflow-y-auto no-scrollbar"> */}
         <div className="w-full max-w-md mx-auto">
           <div className="mb-6 text-center md:text-left">
             <h2 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-blue-600 via-purple-600 to-red-500 bg-clip-text text-transparent sm:text-4xl">

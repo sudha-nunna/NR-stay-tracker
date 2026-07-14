@@ -42,8 +42,9 @@ export default function TravelForm({
   const fromRef = useRef(null);
   const toRef = useRef(null);
 
-  // Today's date string snapshot format used to cap future selections
-  const todayStr = new Date().toISOString().split("T")[0];
+  // Strict Track Period Constraints (April 1, 2026 to March 31, 2027)
+  const minTrackDate = "2026-04-01";
+  const maxTrackDate = "2027-03-31";
 
   // Dynamic state context tracking validation mechanism
   useEffect(() => {
@@ -314,18 +315,24 @@ export default function TravelForm({
             Travel Start Date
           </label>
           <input
-            type="date"
-            max={todayStr}
+            type="text"
+            placeholder="Select Start Date"
+            onFocus={(e) => (e.target.type = "date")}
+            onBlur={(e) => {
+              if (!e.target.value) e.target.type = "text";
+            }}
+            min={minTrackDate}
+            max={maxTrackDate}
             onKeyDown={(e) => e.preventDefault()}
             {...register("departureDate", {
               required: "Please select your travel start date.",
               validate: {
-                noFutureDays: (value) =>
-                  value <= todayStr ||
-                  "Future travel records cannot be logged ahead of time.",
+                withinTrackingPeriod: (value) =>
+                  (value >= minTrackDate && value <= maxTrackDate) ||
+                  "Date must be within April 1, 2026 and March 31, 2027.",
               },
             })}
-            className={`w-full px-3 py-2 bg-slate-50 border text-slate-900 rounded-lg text-base focus:bg-white outline-none transition ${
+            className={`w-full px-3 py-2 bg-slate-50 border text-slate-900 rounded-lg text-base focus:bg-white outline-none transition placeholder-slate-400 h-[42px] ${
               errors.departureDate
                 ? "border-red-400 focus:ring-2 focus:ring-red-200"
                 : "border-slate-200 focus:ring-2 focus:ring-blue-500"
@@ -344,22 +351,28 @@ export default function TravelForm({
             Travel End Date
           </label>
           <input
-            type="date"
-            max={todayStr}
+            type="text"
+            placeholder="Select End Date"
+            onFocus={(e) => (e.target.type = "date")}
+            onBlur={(e) => {
+              if (!e.target.value) e.target.type = "text";
+            }}
+            min={minTrackDate}
+            max={maxTrackDate}
             onKeyDown={(e) => e.preventDefault()}
             {...register("arrivalDate", {
               required: "Please select your travel end date.",
               validate: {
-                noFutureDays: (value) =>
-                  value <= todayStr ||
-                  "Future travel records cannot be logged ahead of time.",
+                withinTrackingPeriod: (value) =>
+                  (value >= minTrackDate && value <= maxTrackDate) ||
+                  "Date must be within April 1, 2026 and March 31, 2027.",
                 chronologicalOrder: (value) =>
                   !watchedDepartureDate ||
                   value >= watchedDepartureDate ||
                   "Travel end date must be on or after the start date.",
               },
             })}
-            className={`w-full px-3 py-2 bg-slate-50 border text-slate-900 rounded-lg text-base focus:bg-white outline-none transition ${
+            className={`w-full px-3 py-2 bg-slate-50 border text-slate-900 rounded-lg text-base focus:bg-white outline-none transition placeholder-slate-400 h-[42px] ${
               errors.arrivalDate
                 ? "border-red-400 focus:ring-2 focus:ring-red-200"
                 : "border-slate-200 focus:ring-2 focus:ring-blue-500"

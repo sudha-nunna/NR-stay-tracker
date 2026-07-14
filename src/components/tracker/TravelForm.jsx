@@ -31,6 +31,7 @@ export default function TravelForm({
   const watchedFromCountry = watch("fromCountry");
   const watchedToCountry = watch("toCountry");
   const watchedDepartureDate = watch("departureDate");
+  const watchedArrivalDate = watch("arrivalDate");
 
   // Search filter options layout state handling mechanisms
   const [searchFrom, setSearchFrom] = useState("");
@@ -319,7 +320,6 @@ export default function TravelForm({
           </label>
           <input
             type="date"
-            placeholder="01/01/2026"
             max={todayStr}
             onKeyDown={(e) => e.preventDefault()}
             {...register("departureDate", {
@@ -330,7 +330,7 @@ export default function TravelForm({
                   "Future travel records cannot be logged ahead of time.",
               },
             })}
-            className={`w-full min-w-0 block h-[42px] px-3 py-2 bg-slate-50 border text-slate-900 rounded-lg text-base focus:bg-white outline-none transition rounded-md [appearance:none] [-webkit-appearance:none] ${
+            className={`w-full min-w-0 block h-[42px] px-3 py-2 bg-slate-50 border rounded-lg text-base focus:bg-white outline-none transition text-left text-slate-900 dark:[color-scheme:light] ${
               errors.departureDate
                 ? "border-red-400 focus:ring-2 focus:ring-red-200"
                 : "border-slate-200 focus:ring-2 focus:ring-blue-500"
@@ -350,7 +350,6 @@ export default function TravelForm({
           </label>
           <input
             type="date"
-            placeholder="31/12/2026"
             max={todayStr}
             onKeyDown={(e) => e.preventDefault()}
             {...register("arrivalDate", {
@@ -365,7 +364,7 @@ export default function TravelForm({
                   "Travel end date must be on or after the start date.",
               },
             })}
-            className={`w-full min-w-0 block h-[42px] px-3 py-2 bg-slate-50 border text-slate-900 rounded-lg text-base focus:bg-white outline-none transition rounded-md [appearance:none] [-webkit-appearance:none] ${
+            className={`w-full min-w-0 block h-[42px] px-3 py-2 bg-slate-50 border rounded-lg text-base focus:bg-white outline-none transition text-left text-slate-900 dark:[color-scheme:light] ${
               errors.arrivalDate
                 ? "border-red-400 focus:ring-2 focus:ring-red-200"
                 : "border-slate-200 focus:ring-2 focus:ring-blue-500"
@@ -428,7 +427,6 @@ export default function TravelForm({
     </form>
   );
 }
-
 // import { useForm } from "react-hook-form";
 // import { countries } from "../../utils/countries";
 // import { FiPlus, FiSave, FiX, FiChevronDown } from "react-icons/fi";

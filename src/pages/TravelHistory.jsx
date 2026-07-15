@@ -15,6 +15,7 @@ import {
   FiPlus,
   FiActivity,
   FiChevronDown,
+  FiDownloadCloud,
   FiCalendar,
 } from "react-icons/fi";
 import { BiLoaderAlt } from "react-icons/bi";
@@ -28,7 +29,8 @@ import {
   isAfter,
 } from "date-fns";
 import { calculateResidencyStatus } from "../utils/residencyCalculator";
-// IMPORT THE HOOK HERE ALSO:
+import * as XLSX from "xlsx";
+
 import { usePresenceToggle } from "../hooks/usePresenceToggle";
 
 export default function TravelHistory() {
@@ -51,7 +53,6 @@ export default function TravelHistory() {
 
   // CONSUME SHARED MULTI-RANGE SPLITTING LOGIC FROM DEDICATED LOCATION HOOK
   const { handleTogglePresence } = usePresenceToggle(user, profile, records);
-
   const getFullCountryName = (code) => {
     if (!code) return "";
     if (code.toUpperCase() === "ABROAD" || code.toUpperCase() === "OTHER")
@@ -60,6 +61,41 @@ export default function TravelHistory() {
       (c) => c.code.toUpperCase() === code.toUpperCase(),
     );
     return match ? match.name : code;
+  };
+
+  const handleExportData = () => {
+    if (records.length === 0) return;
+
+    const rawHomeCountry =
+      profile?.homeCountry || profile?.nativeCountry || "US";
+    const homeCountryName = getFullCountryName(rawHomeCountry);
+
+    const structuredRows = records.map((record, index) => ({
+      "Log Index": records.length - index,
+      "Origin Country": getFullCountryName(record.fromCountry) || "N/A",
+      "Destination Country": getFullCountryName(record.toCountry) || "N/A",
+      "Departure Date": record.departureDate || "N/A",
+      "Arrival Date": record.arrivalDate || "N/A",
+      "Purpose of Travel": record.purpose || "Automated System Entry",
+      "GPS Latitude": record.latitude || "N/A",
+      "GPS Longitude": record.longitude || "N/A",
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(structuredRows);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Travel History Logs");
+
+    const maxColumnWidths = Object.keys(structuredRows[0] || {}).map((key) => {
+      const headerLength = key.length;
+      const longestCellLength = structuredRows.reduce(
+        (max, row) => Math.max(max, String(row[key] || "").length),
+        0,
+      );
+      return { wch: Math.max(headerLength, longestCellLength) + 3 };
+    });
+    worksheet["!cols"] = maxColumnWidths;
+
+    XLSX.writeFile(workbook, `Residency_Audit_Report_${homeCountryName}.xlsx`);
   };
 
   useEffect(() => {
@@ -399,6 +435,18 @@ export default function TravelHistory() {
           </div>
         </div>
       </div>
+      {records.length > 0 && (
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={handleExportData}
+            className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-slate-200 text-slate-700 font-bold text-xs uppercase tracking-wider rounded-xl shadow-sm hover:bg-slate-50 active:bg-slate-100 transition cursor-pointer"
+          >
+            <FiDownloadCloud className="text-base text-indigo-600" />
+            Export Excel Report
+          </button>
+        </div>
+      )}
 
       <div className="w-full">
         <div className="bg-white border border-slate-200 rounded-3xl shadow-sm">

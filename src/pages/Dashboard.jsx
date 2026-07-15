@@ -8,7 +8,7 @@ import {
 import { calculateResidencyStatus } from "../utils/residencyCalculator";
 import { autoTrackLocation } from "../utils/locationTracker";
 import { countries } from "../utils/countries";
-import * as XLSX from "xlsx";
+
 import toast from "react-hot-toast";
 import {
   format,
@@ -296,37 +296,6 @@ export default function Dashboard() {
   };
   const runway = getRunwayMetrics();
 
-  const handleExportData = () => {
-    if (records.length === 0) return;
-
-    const structuredRows = records.map((record, index) => ({
-      "Log Index": records.length - index,
-      "Origin Country": getFullCountryName(record.fromCountry) || "N/A",
-      "Destination Country": getFullCountryName(record.toCountry) || "N/A",
-      "Departure Date": record.departureDate || "N/A",
-      "Arrival Date": record.arrivalDate || "N/A",
-      "Purpose of Travel": record.purpose || "Automated System Entry",
-      "GPS Latitude": record.latitude || "N/A",
-      "GPS Longitude": record.longitude || "N/A",
-    }));
-
-    const worksheet = XLSX.utils.json_to_sheet(structuredRows);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Travel History Logs");
-
-    const maxColumnWidths = Object.keys(structuredRows[0] || {}).map((key) => {
-      const headerLength = key.length;
-      const longestCellLength = structuredRows.reduce(
-        (max, row) => Math.max(max, String(row[key] || "").length),
-        0,
-      );
-      return { wch: Math.max(headerLength, longestCellLength) + 3 };
-    });
-    worksheet["!cols"] = maxColumnWidths;
-
-    XLSX.writeFile(workbook, `Residency_Audit_Report_${homeCountryName}.xlsx`);
-  };
-
   const displayHomeDays = hasValidTravelRecords
     ? (calculation?.homeDays ?? 0)
     : 0;
@@ -506,29 +475,19 @@ export default function Dashboard() {
             Global Travel & Residency Management
           </p>
         </div>
-
-        {records.length > 0 && (
-          <button
-            onClick={handleExportData}
-            className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 font-bold text-xs uppercase tracking-wider rounded-xl shadow-sm hover:bg-slate-50 transition cursor-pointer self-start sm:self-auto"
-          >
-            <FiDownloadCloud className="text-base text-indigo-600" />
-            Export Excel Report
-          </button>
-        )}
       </div>
 
       <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
-        <div className="flex items-start justify-between mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-6">
           <div>
             <p className="text-slate-500 text-lg font-semibold">
               Hello, {homeCountryName}
             </p>
-            <h2 className="text-4xl font-bold text-slate-900 leading-tight">
+            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 leading-tight">
               Your residency
             </h2>
           </div>
-          <div className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-green-700 text-white font-semibold text-lg">
+          <div className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-green-700 text-white font-semibold text-lg self-start">
             <span className="w-3 h-3 rounded-full bg-white"></span>
             {calculation.status}
           </div>

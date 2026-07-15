@@ -114,14 +114,19 @@ export default function TravelHistory() {
     const fyStart = profile?.fyStart || profile?.residencyPeriodStart;
     if (!fyStart) return;
 
-    const rawHomeCountry = profile?.homeCountry || profile?.nativeCountry || "US";
-    const initialHomeStayRecord = records.find((r) => r.purpose === "Initial Home Stay");
+    const rawHomeCountry =
+      profile?.homeCountry || profile?.nativeCountry || "US";
+    const initialHomeStayRecord = records.find(
+      (r) => r.purpose === "Initial Home Stay",
+    );
 
     if (!initialHomeStayRecord && !isCreatingInitialHomeStay.current) {
       isCreatingInitialHomeStay.current = true;
       const today = new Date();
       const yesterdayStr = format(subDays(today, 1), "yyyy-MM-dd");
-      const cleanStartDate = fyStart.includes("T") ? fyStart.split("T")[0] : fyStart;
+      const cleanStartDate = fyStart.includes("T")
+        ? fyStart.split("T")[0]
+        : fyStart;
 
       addTravelRecord(user.uid, {
         departureDate: cleanStartDate,
@@ -135,10 +140,15 @@ export default function TravelHistory() {
       });
     } else if (initialHomeStayRecord) {
       const oldHomeCountry = initialHomeStayRecord.toCountry;
-      const cleanStartDate = fyStart.includes("T") ? fyStart.split("T")[0] : fyStart;
-      
-      const countryChanged = oldHomeCountry !== rawHomeCountry || initialHomeStayRecord.fromCountry !== rawHomeCountry;
-      const dateChanged = initialHomeStayRecord.departureDate !== cleanStartDate;
+      const cleanStartDate = fyStart.includes("T")
+        ? fyStart.split("T")[0]
+        : fyStart;
+
+      const countryChanged =
+        oldHomeCountry !== rawHomeCountry ||
+        initialHomeStayRecord.fromCountry !== rawHomeCountry;
+      const dateChanged =
+        initialHomeStayRecord.departureDate !== cleanStartDate;
 
       if (countryChanged || dateChanged) {
         const syncOperations = [
@@ -146,8 +156,8 @@ export default function TravelHistory() {
             ...initialHomeStayRecord,
             fromCountry: rawHomeCountry,
             toCountry: rawHomeCountry,
-            departureDate: cleanStartDate
-          })
+            departureDate: cleanStartDate,
+          }),
         ];
 
         if (countryChanged) {
@@ -155,20 +165,21 @@ export default function TravelHistory() {
             if (
               record.recordId !== initialHomeStayRecord.recordId &&
               record.fromCountry === oldHomeCountry &&
-              (record.purpose === "Daily GPS Check-In" || record.purpose === "Country Changed")
+              (record.purpose === "Daily GPS Check-In" ||
+                record.purpose === "Country Changed")
             ) {
               syncOperations.push(
                 updateTravelRecord(record.recordId, {
                   ...record,
-                  fromCountry: rawHomeCountry
-                })
+                  fromCountry: rawHomeCountry,
+                }),
               );
             }
           });
         }
 
-        Promise.all(syncOperations).catch((err) => 
-          console.error("[Profile dynamic sync cascade update failed]:", err)
+        Promise.all(syncOperations).catch((err) =>
+          console.error("[Profile dynamic sync cascade update failed]:", err),
         );
       }
     }
@@ -421,6 +432,8 @@ export default function TravelHistory() {
               initialData={editingRecord}
               travelRecords={records}
               onSubmit={handleSaveRecord}
+              fyStart={profile?.fyStart || profile?.residencyPeriodStart}
+              fyEnd={profile?.fyEnd || profile?.residencyPeriodEnd}
               onCancel={() => {
                 setShowForm(false);
                 setEditingRecord(null);
@@ -486,8 +499,6 @@ export default function TravelHistory() {
     </div>
   );
 }
-
-
 
 // import { useForm } from "react-hook-form";
 // import { useEffect, useState, useRef } from "react";
@@ -628,7 +639,7 @@ export default function TravelHistory() {
 //     } else if (initialHomeStayRecord) {
 //       const oldHomeCountry = initialHomeStayRecord.toCountry;
 //       const cleanStartDate = fyStart.includes("T") ? fyStart.split("T")[0] : fyStart;
-      
+
 //       // FIX: Check if country code OR the financial start date has modified in the profile
 //       const countryChanged = oldHomeCountry !== rawHomeCountry || initialHomeStayRecord.fromCountry !== rawHomeCountry;
 //       const dateChanged = initialHomeStayRecord.departureDate !== cleanStartDate;
@@ -661,12 +672,12 @@ export default function TravelHistory() {
 //           });
 //         }
 
-//         Promise.all(syncOperations).catch((err) => 
+//         Promise.all(syncOperations).catch((err) =>
 //           console.error("[Profile dynamic sync cascade update failed]:", err)
 //         );
 //       }
 //     }
-    
+
 //   }, [user, profile, loading, records]);
 
 //   const handleEdit = (record) => {
@@ -1187,6 +1198,3 @@ export default function TravelHistory() {
 //     </div>
 //   );
 // }
-
-
-

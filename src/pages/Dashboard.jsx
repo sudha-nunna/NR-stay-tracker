@@ -66,8 +66,18 @@ export default function Dashboard() {
       if (/^\d{2}-\d{2}$/.test(dateStr)) {
         const [month, day] = dateStr.split("-");
         const shortMonths = [
-          "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-          "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+          "Jan",
+          "Feb",
+          "Mar",
+          "Apr",
+          "May",
+          "Jun",
+          "Jul",
+          "Aug",
+          "Sep",
+          "Oct",
+          "Nov",
+          "Dec",
         ];
         const monthIndex = parseInt(month, 10) - 1;
 
@@ -116,14 +126,19 @@ export default function Dashboard() {
     const fyStart = profile?.fyStart || profile?.residencyPeriodStart;
     if (!fyStart) return;
 
-    const rawHomeCountry = profile?.homeCountry || profile?.nativeCountry || "US";
-    const initialHomeStayRecord = records.find((r) => r.purpose === "Initial Home Stay");
+    const rawHomeCountry =
+      profile?.homeCountry || profile?.nativeCountry || "US";
+    const initialHomeStayRecord = records.find(
+      (r) => r.purpose === "Initial Home Stay",
+    );
 
     if (!initialHomeStayRecord && !isCreatingInitialHomeStay.current) {
       isCreatingInitialHomeStay.current = true;
       const today = new Date();
       const yesterdayStr = format(subDays(today, 1), "yyyy-MM-dd");
-      const cleanStartDate = fyStart.includes("T") ? fyStart.split("T")[0] : fyStart;
+      const cleanStartDate = fyStart.includes("T")
+        ? fyStart.split("T")[0]
+        : fyStart;
 
       addTravelRecord(user.uid, {
         departureDate: cleanStartDate,
@@ -131,42 +146,45 @@ export default function Dashboard() {
         fromCountry: rawHomeCountry,
         toCountry: rawHomeCountry,
         purpose: "Initial Home Stay",
-      })
-        .catch((err) => {
-          console.error("[Initial Home Stay Auto-Creation Error]:", err);
-          isCreatingInitialHomeStay.current = false;
-        });
-    }    else if (initialHomeStayRecord) {
+      }).catch((err) => {
+        console.error("[Initial Home Stay Auto-Creation Error]:", err);
+        isCreatingInitialHomeStay.current = false;
+      });
+    } else if (initialHomeStayRecord) {
       const oldHomeCountry = initialHomeStayRecord.toCountry;
-      
-      if (oldHomeCountry !== rawHomeCountry || initialHomeStayRecord.fromCountry !== rawHomeCountry) {
+
+      if (
+        oldHomeCountry !== rawHomeCountry ||
+        initialHomeStayRecord.fromCountry !== rawHomeCountry
+      ) {
         const syncOperations = [
           updateTravelRecord(initialHomeStayRecord.recordId, {
             fromCountry: rawHomeCountry,
             toCountry: rawHomeCountry,
             departureDate: initialHomeStayRecord.departureDate,
             arrivalDate: initialHomeStayRecord.arrivalDate,
-            purpose: "Initial Home Stay"
-          })
+            purpose: "Initial Home Stay",
+          }),
         ];
 
         records.forEach((record) => {
           if (
             record.recordId !== initialHomeStayRecord.recordId &&
             record.fromCountry === oldHomeCountry &&
-            (record.purpose === "Daily GPS Check-In" || record.purpose === "Country Changed")
+            (record.purpose === "Daily GPS Check-In" ||
+              record.purpose === "Country Changed")
           ) {
             syncOperations.push(
               updateTravelRecord(record.recordId, {
                 ...record,
-                fromCountry: rawHomeCountry
-              })
+                fromCountry: rawHomeCountry,
+              }),
             );
           }
         });
 
-        Promise.all(syncOperations).catch((err) => 
-          console.error("[Profile Country Sync cascading update failed]:", err)
+        Promise.all(syncOperations).catch((err) =>
+          console.error("[Profile Country Sync cascading update failed]:", err),
         );
       }
     }
@@ -176,7 +194,9 @@ export default function Dashboard() {
     if (!user || metricsLoading || !profile) return;
 
     const fyStart = profile?.fyStart || profile?.residencyPeriodStart;
-    const hasInitialHomeStay = records.some((r) => r.purpose === "Initial Home Stay");
+    const hasInitialHomeStay = records.some(
+      (r) => r.purpose === "Initial Home Stay",
+    );
 
     if (fyStart && !hasInitialHomeStay) {
       return;
@@ -188,7 +208,10 @@ export default function Dashboard() {
 
     const gpsRecordExistsInDb = records.some((r) => {
       const arrival = r.arrivalDate?.split("T")[0] || r.arrivalDate;
-      return arrival === today && (r.purpose === "Daily GPS Check-In" || r.purpose === "Country Changed");
+      return (
+        arrival === today &&
+        (r.purpose === "Daily GPS Check-In" || r.purpose === "Country Changed")
+      );
     });
 
     if (!gpsRecordExistsInDb && alreadyTrackedToday === today) {
@@ -229,8 +252,10 @@ export default function Dashboard() {
     : "Configuring Base...";
 
   const targetTimezone = profile?.timezone || "Not Set";
-  const horizonPeriodStart = profile?.residencyPeriodStart || profile?.fyStart || "Start Date Open";
-  const horizonPeriodEnd = profile?.residencyPeriodEnd || profile?.fyEnd || "End Date Open";
+  const horizonPeriodStart =
+    profile?.residencyPeriodStart || profile?.fyStart || "Start Date Open";
+  const horizonPeriodEnd =
+    profile?.residencyPeriodEnd || profile?.fyEnd || "End Date Open";
   const definedMilestone = parseInt(profile?.residencyThreshold || "183", 10);
 
   const hasValidTravelRecords = records.some(
@@ -302,9 +327,16 @@ export default function Dashboard() {
     XLSX.writeFile(workbook, `Residency_Audit_Report_${homeCountryName}.xlsx`);
   };
 
-  const displayHomeDays = hasValidTravelRecords ? (calculation?.homeDays ?? 0) : 0;
-  const displayOutsideDays = hasValidTravelRecords ? (calculation?.outsideDays ?? 0) : 0;
-  const remainingTargetDays = Math.max(0, definedMilestone - displayOutsideDays);
+  const displayHomeDays = hasValidTravelRecords
+    ? (calculation?.homeDays ?? 0)
+    : 0;
+  const displayOutsideDays = hasValidTravelRecords
+    ? (calculation?.outsideDays ?? 0)
+    : 0;
+  const remainingTargetDays = Math.max(
+    0,
+    definedMilestone - displayOutsideDays,
+  );
 
   const cards = [
     {
@@ -329,7 +361,10 @@ export default function Dashboard() {
 
   const getCurrentFootprint = () => {
     if (records.length === 0) return homeCountryName;
-    const gpsRecords = records.filter((r) => r.purpose === "Daily GPS Check-In" || r.purpose === "Country Changed");
+    const gpsRecords = records.filter(
+      (r) =>
+        r.purpose === "Daily GPS Check-In" || r.purpose === "Country Changed",
+    );
     const targetRecords = gpsRecords.length > 0 ? gpsRecords : records;
 
     const latestRecord = [...targetRecords].sort((a, b) => {
@@ -338,20 +373,30 @@ export default function Dashboard() {
       return dateB - dateA;
     })[0];
 
-    if (latestRecord?.toCountry?.toUpperCase() === "ABROAD" || latestRecord?.toCountry?.toUpperCase() === "OTHER") {
+    if (
+      latestRecord?.toCountry?.toUpperCase() === "ABROAD" ||
+      latestRecord?.toCountry?.toUpperCase() === "OTHER"
+    ) {
       return "Abroad";
     }
-    return latestRecord?.toCountry ? getFullCountryName(latestRecord.toCountry) : "Locating...";
+    return latestRecord?.toCountry
+      ? getFullCountryName(latestRecord.toCountry)
+      : "Locating...";
   };
 
   const currentFootprintDisplay = getCurrentFootprint();
-  const homeBase = (profile?.homeCountry || profile?.nativeCountry || "US").toUpperCase();
+  const homeBase = (
+    profile?.homeCountry ||
+    profile?.nativeCountry ||
+    "US"
+  ).toUpperCase();
   const computedDayMap = {};
 
   if (hasValidTravelRecords) {
     records.forEach((record) => {
       if (!record?.arrivalDate || !record?.departureDate) return;
-      if (isAfter(parseISO(record.departureDate), parseISO(record.arrivalDate))) return;
+      if (isAfter(parseISO(record.departureDate), parseISO(record.arrivalDate)))
+        return;
       if (
         record.arrivalDate === record.departureDate &&
         (record.purpose === "Calendar Check-In" ||
@@ -361,7 +406,8 @@ export default function Dashboard() {
         return;
       }
 
-      const isRecordHome = record.toCountry && record.toCountry.toUpperCase() === homeBase;
+      const isRecordHome =
+        record.toCountry && record.toCountry.toUpperCase() === homeBase;
       const days = eachDayOfInterval({
         start: new Date(record.departureDate + "T00:00:00"),
         end: new Date(record.arrivalDate + "T00:00:00"),
@@ -387,7 +433,8 @@ export default function Dashboard() {
         return;
 
       const key = record.arrivalDate;
-      const isRecordHome = record.toCountry && record.toCountry.toUpperCase() === homeBase;
+      const isRecordHome =
+        record.toCountry && record.toCountry.toUpperCase() === homeBase;
 
       computedDayMap[key] = {
         status: isRecordHome ? "Home Stay" : "Abroad Stay",
@@ -398,8 +445,10 @@ export default function Dashboard() {
 
   const calendarHomeDays = displayHomeDays;
   const calendarAbroadDays = displayOutsideDays;
-  const loggedTotalDays = calendarHomeDays + calendarAbroadDays;
-
+  // const loggedTotalDays = calendarHomeDays + calendarAbroadDays;
+  const loggedTotalDays =
+  Number(calendarHomeDays || 0) +
+  Number(calendarAbroadDays || 0);
   const handleFormSubmitCallback = async (data) => {
     try {
       const normalizeDate = (date) => {
@@ -413,15 +462,21 @@ export default function Dashboard() {
         }
 
         return (
-          normalizeDate(record.departureDate) === normalizeDate(data.departureDate) &&
-          normalizeDate(record.arrivalDate) === normalizeDate(data.arrivalDate) &&
-          (record.fromCountry || "").toUpperCase() === (data.fromCountry || "").toUpperCase() &&
-          (record.toCountry || "").toUpperCase() === (data.toCountry || "").toUpperCase()
+          normalizeDate(record.departureDate) ===
+            normalizeDate(data.departureDate) &&
+          normalizeDate(record.arrivalDate) ===
+            normalizeDate(data.arrivalDate) &&
+          (record.fromCountry || "").toUpperCase() ===
+            (data.fromCountry || "").toUpperCase() &&
+          (record.toCountry || "").toUpperCase() ===
+            (data.toCountry || "").toUpperCase()
         );
       });
 
       if (isDuplicate) {
-        toast.error("A travel record with the same dates and countries already exists.");
+        toast.error(
+          "A travel record with the same dates and countries already exists.",
+        );
         return;
       }
 
@@ -445,8 +500,12 @@ export default function Dashboard() {
     <div className="space-y-8 pb-4 max-w-7xl mx-auto text-left">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-black tracking-tight">Workspace Terminal</h1>
-          <p className="text-sm text-blue-800 font-medium mt-1">Global Travel & Residency Management</p>
+          <h1 className="text-3xl font-bold text-black tracking-tight">
+            Workspace Terminal
+          </h1>
+          <p className="text-sm text-blue-800 font-medium mt-1">
+            Global Travel & Residency Management
+          </p>
         </div>
 
         {records.length > 0 && (
@@ -463,8 +522,12 @@ export default function Dashboard() {
       <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
         <div className="flex items-start justify-between mb-6">
           <div>
-            <p className="text-slate-500 text-lg font-semibold">Hello, 🇮🇳 {homeCountryName}</p>
-            <h2 className="text-4xl font-bold text-slate-900 leading-tight">Your residency</h2>
+            <p className="text-slate-500 text-lg font-semibold">
+              Hello, {homeCountryName}
+            </p>
+            <h2 className="text-4xl font-bold text-slate-900 leading-tight">
+              Your residency
+            </h2>
           </div>
           <div className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-green-700 text-white font-semibold text-lg">
             <span className="w-3 h-3 rounded-full bg-white"></span>
@@ -476,7 +539,14 @@ export default function Dashboard() {
           <div className="flex justify-center">
             <div className="relative w-64 h-64">
               <svg className="w-full h-full -rotate-90" viewBox="0 0 120 120">
-                <circle cx="60" cy="60" r="48" fill="none" stroke="#14532d" strokeWidth="10" />
+                <circle
+                  cx="60"
+                  cy="60"
+                  r="48"
+                  fill="none"
+                  stroke="#14532d"
+                  strokeWidth="10"
+                />
                 <circle
                   cx="60"
                   cy="60"
@@ -486,16 +556,29 @@ export default function Dashboard() {
                   strokeWidth="10"
                   strokeLinecap="round"
                   strokeDasharray={`${2 * Math.PI * 48}`}
-                  strokeDashoffset={2 * Math.PI * 48 * (1 - Math.min(displayOutsideDays / definedMilestone, 1)) || 0}
+                  strokeDashoffset={
+                    2 *
+                      Math.PI *
+                      48 *
+                      (1 -
+                        Math.min(displayOutsideDays / definedMilestone, 1)) || 0
+                  }
                 />
               </svg>
 
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-slate-500 text-sm uppercase tracking-wider">Days Abroad</span>
-                <h2 className="text-5xl font-black text-slate-900">{displayOutsideDays}</h2>
-                <p className="text-slate-500 text-sm">of {definedMilestone} limit</p>
+                <span className="text-slate-500 text-sm uppercase tracking-wider">
+                  Days Abroad
+                </span>
+                <h2 className="text-5xl font-black text-slate-900">
+                  {displayOutsideDays}
+                </h2>
+                <p className="text-slate-500 text-sm">
+                  of {definedMilestone} limit
+                </p>
                 <span className="mt-2 px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-semibold">
-                  FY {new Date(profile?.fyStart).getFullYear()}-{String(new Date(profile?.fyEnd).getFullYear()).slice(-2)}
+                  FY {new Date(profile?.fyStart).getFullYear()}-
+                  {String(new Date(profile?.fyEnd).getFullYear()).slice(-2)}
                 </span>
               </div>
             </div>
@@ -505,29 +588,39 @@ export default function Dashboard() {
             <div className="grid grid-cols-2 gap-4">
               <div className="bg-slate-50 rounded-2xl p-4">
                 <p className="text-slate-500 text-sm">Home</p>
-                <h3 className="text-3xl font-bold text-green-700">{displayHomeDays}days</h3>
+                <h3 className="text-3xl font-bold text-green-700">
+                  {displayHomeDays}days
+                </h3>
               </div>
               <div className="bg-slate-50 rounded-2xl p-4">
                 <p className="text-slate-500 text-sm">Abroad</p>
-                <h3 className="text-3xl font-bold text-amber-600">{displayOutsideDays}days</h3>
+                <h3 className="text-3xl font-bold text-amber-600">
+                  {displayOutsideDays}days
+                </h3>
               </div>
             </div>
 
             <div className="grid grid-cols-3 gap-4">
               <div className="bg-slate-50 rounded-2xl p-4">
                 <p className="text-slate-500 text-xs">Days to Target</p>
-                <h3 className="text-2xl font-bold text-slate-900">{remainingTargetDays}</h3>
+                <h3 className="text-2xl font-bold text-slate-900">
+                  {remainingTargetDays}
+                </h3>
               </div>
               <div className="bg-slate-50 rounded-2xl p-4">
                 <p className="text-slate-500 text-xs">Days Left</p>
-                <h3 className="text-2xl font-bold text-slate-900">{runway.daysLeftInPeriod}</h3>
+                <h3 className="text-2xl font-bold text-slate-900">
+                  {runway.daysLeftInPeriod}
+                </h3>
               </div>
             </div>
 
             <div className="bg-green-50 border border-green-100 rounded-2xl p-4">
               <h4 className="font-bold text-green-800 mb-2">Projection</h4>
               <p className="text-green-700 text-sm">
-                You need {remainingTargetDays} more days abroad within {runway.daysLeftInPeriod} remaining days of this tracking period.
+                You need {remainingTargetDays} more days abroad within{" "}
+                {runway.daysLeftInPeriod} remaining days of this tracking
+                period.
               </p>
             </div>
           </div>
@@ -536,34 +629,58 @@ export default function Dashboard() {
 
       <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold text-slate-900">Travel Summary</h2>
-          <span className="bg-slate-100 text-slate-700 px-3 py-1 rounded-full text-sm font-medium">{records.length} Logs</span>
+          <h2 className="text-xl font-semibold text-slate-900">
+            Travel Summary
+          </h2>
+          <span className="bg-slate-100 text-slate-700 px-3 py-1 rounded-full text-sm font-medium">
+            {records.length} Logs
+          </span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="bg-amber-50 rounded-2xl p-4 sm:p-5 border border-amber-100 flex flex-col justify-between">
-            <p className="text-xs sm:text-sm text-amber-700 font-bold uppercase tracking-wider">Abroad Stay Target</p>
+            <p className="text-xs sm:text-sm text-amber-700 font-bold uppercase tracking-wider">
+              Abroad Stay Target
+            </p>
             <div className="flex flex-wrap items-baseline gap-1 mt-2">
-              <h3 className="text-2xl sm:text-3xl font-black text-amber-900">{displayOutsideDays}</h3>
-              <span className="text-base sm:text-lg font-semibold text-amber-700">/</span>
-              <h3 className="text-2xl sm:text-3xl font-black text-amber-900">{definedMilestone}</h3>
-              <span className="text-xs sm:text-sm text-amber-600 font-semibold ml-0.5">days</span>
+              <h3 className="text-2xl sm:text-3xl font-black text-amber-900">
+                {displayOutsideDays}
+              </h3>
+              <span className="text-base sm:text-lg font-semibold text-amber-700">
+                /
+              </span>
+              <h3 className="text-2xl sm:text-3xl font-black text-amber-900">
+                {definedMilestone}
+              </h3>
+              <span className="text-xs sm:text-sm text-amber-600 font-semibold ml-0.5">
+                days
+              </span>
             </div>
-            <p className="text-xs sm:text-sm text-red-600 mt-2 sm:mt-3 font-semibold">Remaining: {remainingTargetDays} Days</p>
+            <p className="text-xs sm:text-sm text-red-600 mt-2 sm:mt-3 font-semibold">
+              Remaining: {remainingTargetDays} Days
+            </p>
           </div>
 
           <div className="bg-green-50 rounded-2xl p-5 border border-green-100">
-            <p className="text-sm text-green-700 font-medium">Own Country Stay</p>
+            <p className="text-sm text-green-700 font-medium">
+              Own Country Stay
+            </p>
             <div className="flex items-center gap-2 mt-1">
-              <h3 className="text-3xl font-bold text-green-900 mt-2">{displayHomeDays}</h3>
+              <h3 className="text-3xl font-bold text-green-900 mt-2">
+                {displayHomeDays}
+              </h3>
               <p className="text-sm text-green-600 font-medium mt-3">days</p>
             </div>
           </div>
 
           <div className="bg-blue-50 rounded-2xl p-5 border border-blue-100">
-            <p className="text-sm text-blue-700 font-medium">Abroad Country Stay</p>
+            <p className="text-sm text-blue-700 font-medium">
+              Abroad Country Stay
+            </p>
             <div className="flex items-center gap-2 mt-1">
-              <h3 className="text-3xl font-bold text-blue-900 mt-2">{displayOutsideDays}</h3>
+              <h3 className="text-3xl font-bold text-blue-900 mt-2">
+                {displayOutsideDays}
+              </h3>
               <p className="text-sm text-blue-600 font-medium mt-3">days</p>
             </div>
           </div>
@@ -571,7 +688,9 @@ export default function Dashboard() {
           <div className="bg-purple-50 rounded-2xl p-5 border border-purple-100">
             <p className="text-sm text-purple-700 font-medium">Total Stay</p>
             <div className="flex items-center gap-2 mt-1">
-              <h3 className="text-3xl font-bold text-purple-900 mt-2">{loggedTotalDays}</h3>
+              <h3 className="text-3xl font-bold text-purple-900 mt-2">
+                {loggedTotalDays}
+              </h3>
               <p className="text-sm text-purple-600 font-medium mt-3">days</p>
             </div>
           </div>
@@ -580,13 +699,19 @@ export default function Dashboard() {
 
       <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Abroad Status Progress</span>
-          <span className="text-sm font-bold text-slate-900">{displayOutsideDays > 0 ? calculation.progressPercentage : 0}%</span>
+          <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+            Abroad Status Progress
+          </span>
+          <span className="text-sm font-bold text-slate-900">
+            {displayOutsideDays > 0 ? calculation.progressPercentage : 0}%
+          </span>
         </div>
         <div className="w-full bg-slate-100 h-3 rounded-full overflow-hidden border border-slate-200">
           <div
             className="bg-gradient-to-r from-blue-500 to-indigo-600 h-full transition-all duration-500"
-            style={{ width: `${displayOutsideDays > 0 ? calculation.progressPercentage : 0}%` }}
+            style={{
+              width: `${displayOutsideDays > 0 ? calculation.progressPercentage : 0}%`,
+            }}
           ></div>
         </div>
         <div className="flex justify-between items-center mt-3 text-xs text-slate-500 font-semibold">
@@ -597,21 +722,35 @@ export default function Dashboard() {
 
       <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm">
         <div className="border-b border-slate-100 pb-4 mb-6">
-          <h2 className="text-xl font-semibold text-slate-900">Profile Summary</h2>
-          <p className="text-xs text-slate-500 mt-0.5">Overview of your current core settings, tracking horizons, and active global footprint.</p>
+          <h2 className="text-xl font-semibold text-slate-900">
+            Profile Summary
+          </h2>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Overview of your current core settings, tracking horizons, and
+            active global footprint.
+          </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
           {cards.map((card, index) => {
             const Icon = card.icon;
             return (
-              <div key={index} className="bg-slate-50/50 border border-slate-100 rounded-2xl p-5 hover:shadow-sm transition-all">
+              <div
+                key={index}
+                className="bg-slate-50/50 border border-slate-100 rounded-2xl p-5 hover:shadow-sm transition-all"
+              >
                 <div className="flex items-start justify-between">
                   <div className="space-y-1">
-                    <p className="text-xs uppercase tracking-wide text-slate-500 font-semibold">{card.title}</p>
-                    <p className="text-lg font-semibold text-slate-900 break-words mt-2">{card.value}</p>
+                    <p className="text-xs uppercase tracking-wide text-slate-500 font-semibold">
+                      {card.title}
+                    </p>
+                    <p className="text-lg font-semibold text-slate-900 break-words mt-2">
+                      {card.value}
+                    </p>
                   </div>
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${card.iconBg}`}>
+                  <div
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${card.iconBg}`}
+                  >
                     <Icon className="text-lg" />
                   </div>
                 </div>
@@ -622,8 +761,12 @@ export default function Dashboard() {
           <div className="bg-slate-50/50 border border-slate-100 rounded-2xl p-6 hover:shadow-sm transition-all">
             <div className="flex items-start justify-between">
               <div className="space-y-1">
-                <p className="text-xs uppercase tracking-wide text-slate-500 font-semibold">Current Footprint</p>
-                <p className="text-lg font-semibold text-slate-900 truncate max-w-[180px]">{currentFootprintDisplay}</p>
+                <p className="text-xs uppercase tracking-wide text-slate-500 font-semibold">
+                  Current Footprint
+                </p>
+                <p className="text-lg font-semibold text-slate-900 truncate max-w-[180px]">
+                  {currentFootprintDisplay}
+                </p>
               </div>
               <div className="w-10 h-10 rounded-xl bg-green-50 text-green-600 flex items-center justify-center shrink-0">
                 <FiMapPin className="text-lg" />
@@ -637,8 +780,14 @@ export default function Dashboard() {
         <div className="bg-orange-50 border border-orange-200 rounded-2xl p-4 flex items-start gap-3">
           <FiAlertTriangle className="text-orange-600 text-xl mt-0.5" />
           <div>
-            <h3 className="font-semibold text-orange-800">{hasValidTravelRecords ? "Residency Warning" : "Add Travel History"}</h3>
-            <p className="text-orange-700 text-sm mt-1">{calculation.warning}</p>
+            <h3 className="font-semibold text-orange-800">
+              {hasValidTravelRecords
+                ? "Residency Warning"
+                : "Add Travel History"}
+            </h3>
+            <p className="text-orange-700 text-sm mt-1">
+              {calculation.warning}
+            </p>
           </div>
         </div>
       )}
@@ -649,9 +798,13 @@ export default function Dashboard() {
             <FiInfo className="text-xl" />
           </div>
           <div className="space-y-1">
-            <h3 className="font-bold text-blue-900 text-base tracking-tight">Add Your Travel History</h3>
+            <h3 className="font-bold text-blue-900 text-base tracking-tight">
+              Add Your Travel History
+            </h3>
             <p className="text-base text-blue-700 leading-relaxed max-w-3xl">
-              For accurate residency calculations, add your previous travel history using the Add Travel Record button or update your stay records directly from the calendar below.
+              For accurate residency calculations, add your previous travel
+              history using the Add Travel Record button or update your stay
+              records directly from the calendar below.
             </p>
           </div>
         </div>
@@ -664,7 +817,9 @@ export default function Dashboard() {
           >
             <FiPlus />
             <span>Add Travel Record</span>
-            <FiChevronDown className={`transition-transform duration-200 ${isMenuOpen ? "rotate-180" : ""}`} />
+            <FiChevronDown
+              className={`transition-transform duration-200 ${isMenuOpen ? "rotate-180" : ""}`}
+            />
           </button>
 
           {isMenuOpen && (
@@ -673,9 +828,14 @@ export default function Dashboard() {
                 type="button"
                 onClick={() => {
                   setIsMenuOpen(false);
-                  const element = document.getElementById("stay-calendar-section");
+                  const element = document.getElementById(
+                    "stay-calendar-section",
+                  );
                   if (element) {
-                    element.scrollIntoView({ behavior: "smooth", block: "center" });
+                    element.scrollIntoView({
+                      behavior: "smooth",
+                      block: "center",
+                    });
                   }
                 }}
                 className="w-full flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-medium text-slate-700 hover:bg-slate-50 transition text-left cursor-pointer"
@@ -700,18 +860,27 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div id="stay-calendar-section" className="bg-gradient-to-br from-white via-slate-50 to-blue-50 rounded-3xl space-y-4 w-full mx-auto border border-slate-200 shadow-lg p-4">
+      <div
+        id="stay-calendar-section"
+        className="bg-gradient-to-br from-white via-slate-50 to-blue-50 rounded-3xl space-y-4 w-full mx-auto border border-slate-200 shadow-lg p-4"
+      >
         <div className="flex justify-between gap-3">
           <h2 className="text-xl font-bold text-slate-900">Stay Calendar</h2>
           <div className="flex flex-wrap gap-3">
             <div className="px-4 py-2 bg-green-50 border border-green-200 rounded-xl">
-              <span className="text-green-700 font-semibold text-sm">🏠 Home: {calendarHomeDays} Days</span>
+              <span className="text-green-700 font-semibold text-sm">
+                🏠 Home: {calendarHomeDays} Days
+              </span>
             </div>
             <div className="px-4 py-2 bg-blue-50 border border-blue-200 rounded-xl">
-              <span className="text-blue-700 font-semibold text-sm">🌍 Abroad: {calendarAbroadDays} Days</span>
+              <span className="text-blue-700 font-semibold text-sm">
+                🌍 Abroad: {calendarAbroadDays} Days
+              </span>
             </div>
             <div className="px-4 py-2 bg-blue-50 border border-blue-200 rounded-xl">
-              <span className="text-purple-700 font-semibold text-sm">Total: &nbsp;{calendarHomeDays + calendarAbroadDays} Days</span>
+              <span className="text-purple-700 font-semibold text-sm">
+                Total: &nbsp;{calendarHomeDays + calendarAbroadDays} Days
+              </span>
             </div>
           </div>
         </div>
@@ -732,6 +901,8 @@ export default function Dashboard() {
               initialData={editingRecord}
               onSubmit={handleFormSubmitCallback}
               travelRecords={records}
+              fyStart={profile?.fyStart || profile?.residencyPeriodStart}
+              fyEnd={profile?.fyEnd || profile?.residencyPeriodEnd}
               onCancel={() => {
                 setShowForm(false);
                 setEditingRecord(null);
@@ -743,9 +914,6 @@ export default function Dashboard() {
     </div>
   );
 }
-
-
-
 
 // import { useEffect, useState, useRef } from "react";
 // import { useAuth } from "../context/AuthContext";
@@ -886,7 +1054,7 @@ export default function Dashboard() {
 //         });
 //     }  else if (initialHomeStayRecord) {
 //       const oldHomeCountry = initialHomeStayRecord.toCountry;
-      
+
 //       // If profile home country changes, automatically update the Initial Home Stay and dependent records
 //       if (oldHomeCountry !== rawHomeCountry || initialHomeStayRecord.fromCountry !== rawHomeCountry) {
 //         const syncOperations = [
@@ -915,7 +1083,7 @@ export default function Dashboard() {
 //           }
 //         });
 
-//         Promise.all(syncOperations).catch((err) => 
+//         Promise.all(syncOperations).catch((err) =>
 //           console.error("[Profile Country Sync cascading update failed]:", err)
 //         );
 //       }
@@ -1257,7 +1425,6 @@ export default function Dashboard() {
 //       toast.error("Could not update presence tracking status.");
 //     }
 //   };
-  
 
 //   const displayHomeDays = hasValidTravelRecords ? (calculation?.homeDays ?? 0) : 0;
 //   const displayOutsideDays = hasValidTravelRecords ? (calculation?.outsideDays ?? 0) : 0;
@@ -1700,5 +1867,3 @@ export default function Dashboard() {
 //     </div>
 //   );
 // }
-
-

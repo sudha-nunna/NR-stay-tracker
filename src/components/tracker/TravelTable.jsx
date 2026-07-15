@@ -37,8 +37,10 @@ export default function TravelTable({ records, onDelete, onEdit }) {
       {/* <div className="w-full overflow-auto max-h-[600px] scrollbar-thin scrollbar-thumb-slate-200 active:scrollbar-thumb-slate-300 touch-auto">
         <table className="w-full border-collapse text-left text-base min-w-[700px]"> */}
       {/* FIXED: Added overscroll-x-contain and -webkit-overflow-scrolling to isolate horizontal table gestures from Safari body movement */}
-      <div className="w-full overflow-x-auto overflow-y-auto max-h-[600px] overscroll-x-contain [webkit-overflow-scrolling:touch] scrollbar-thin scrollbar-thumb-slate-200 active:scrollbar-thumb-slate-300">
-        <table className="w-full border-collapse text-left text-base min-w-[700px]">  
+      {/* <div className="w-full overflow-x-auto overflow-y-auto max-h-[600px] overscroll-x-contain [webkit-overflow-scrolling:touch] scrollbar-thin scrollbar-thumb-slate-200 active:scrollbar-thumb-slate-300">
+        <table className="w-full border-collapse text-left text-base min-w-[700px]">   */}
+      <div className="w-full overflow-x-auto overflow-y-auto max-h-[600px] overscroll-contain [webkit-overflow-scrolling:touch] [touch-action:pan-x_pan-y] scrollbar-thin scrollbar-thumb-slate-200 active:scrollbar-thumb-slate-300">
+        <table className="w-full border-collapse text-left text-base min-w-[700px]">
           <thead className="bg-slate-50 border-b border-slate-200 text-slate-400 text-[10px] uppercase font-bold tracking-wider sticky top-0 z-20 shadow-[0_1px_0_0_rgba(226,232,240,1)]">
             <tr>
               <th className="px-6 py-3.5 sticky left-0 bg-slate-50 md:relative z-30">
@@ -57,7 +59,8 @@ export default function TravelTable({ records, onDelete, onEdit }) {
                 key={r.recordId}
                 className="hover:bg-slate-50/50 transition-colors"
               >
-                <td className="px-6 py-4 text-slate-900 font-bold sticky left-0 bg-white/90 backdrop-blur-xs md:relative z-10 whitespace-nowrap shadow-[4px_0_24px_-4px_rgba(0,0,0,0.05)] md:shadow-none">
+                {/* <td className="px-6 py-4 text-slate-900 font-bold sticky left-0 bg-white/90 backdrop-blur-xs md:relative z-10 whitespace-nowrap shadow-[4px_0_24px_-4px_rgba(0,0,0,0.05)] md:shadow-none"> */}
+                <td className="px-6 py-4 text-slate-900 font-bold sticky left-0 bg-white md:relative z-10 whitespace-nowrap shadow-[4px_0_24px_-4px_rgba(0,0,0,0.05)] md:shadow-none"> 
                   <span className="px-2 py-0.5 bg-slate-100 border border-slate-200 rounded text-slate-700 mr-1.5 uppercase text-[10px] sm:text-xs">
                     {r.fromCountry}
                   </span>

@@ -447,8 +447,7 @@ export default function Dashboard() {
   const calendarAbroadDays = displayOutsideDays;
   // const loggedTotalDays = calendarHomeDays + calendarAbroadDays;
   const loggedTotalDays =
-  Number(calendarHomeDays || 0) +
-  Number(calendarAbroadDays || 0);
+    Number(calendarHomeDays || 0) + Number(calendarAbroadDays || 0);
   const handleFormSubmitCallback = async (data) => {
     try {
       const normalizeDate = (date) => {
@@ -864,21 +863,21 @@ export default function Dashboard() {
         id="stay-calendar-section"
         className="bg-gradient-to-br from-white via-slate-50 to-blue-50 rounded-3xl space-y-4 w-full mx-auto border border-slate-200 shadow-lg p-4"
       >
-        <div className="flex justify-between gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <h2 className="text-xl font-bold text-slate-900">Stay Calendar</h2>
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-2 sm:gap-3">
             <div className="px-4 py-2 bg-green-50 border border-green-200 rounded-xl">
-              <span className="text-green-700 font-semibold text-sm">
+              <span className="text-green-700 font-semibold text-xs sm:text-sm whitespace-nowrap">
                 🏠 Home: {calendarHomeDays} Days
               </span>
             </div>
             <div className="px-4 py-2 bg-blue-50 border border-blue-200 rounded-xl">
-              <span className="text-blue-700 font-semibold text-sm">
+              <span className="text-blue-700 font-semibold text-xs sm:text-sm whitespace-nowrap">
                 🌍 Abroad: {calendarAbroadDays} Days
               </span>
             </div>
             <div className="px-4 py-2 bg-blue-50 border border-blue-200 rounded-xl">
-              <span className="text-purple-700 font-semibold text-sm">
+              <span className="text-purple-700 font-semibold text-xs sm:text-sm whitespace-nowrap">
                 Total: &nbsp;{calendarHomeDays + calendarAbroadDays} Days
               </span>
             </div>

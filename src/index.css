@@ -96,3 +96,7 @@ select,
 textarea {
   -webkit-text-size-adjust: 100%;
 }
+/* Prevent horizontal table drag from propagating to the page body on iOS Safari */
+.overscroll-contain {
+  overscroll-behavior: contain;
+}

@@ -456,11 +456,11 @@ export default function TravelHistory() {
           }}
         >
           <div className="w-full max-w-4xl bg-white rounded-3xl p-4 sm:p-6 shadow-2xl max-h-[calc(100vh-120px)] overflow-auto mx-auto border border-slate-100 touch-auto">
-            <div className="flex justify-between sm:gap-3 mb-2">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-2">
               <h2 className="text-xl font-bold text-slate-900">
                 Stay Calendar
               </h2>
-              <div className="flex flex-wrap gap-3">
+              <div className="flex flex-wrap gap-2 sm:gap-3">
                 <div className="px-3 py-1.5 sm:px-4 sm:py-2 bg-green-50 border border-green-200 rounded-xl flex items-center">
                   <span className="text-green-700 font-semibold text-xs sm:text-sm whitespace-nowrap">
                     🏠 Home: {calendarHomeDays} Days
@@ -471,8 +471,8 @@ export default function TravelHistory() {
                     🌍 Abroad: {calendarAbroadDays} Days
                   </span>
                 </div>
-                <div className="px-4 py-2 bg-blue-50 border border-blue-200 rounded-xl">
-                  <span className="text-purple-700 font-semibold text-sm">
+                <div className="px-3 py-1.5 sm:px-4 sm:py-2 bg-blue-50 border border-blue-200 rounded-xl flex items-center">
+                  <span className="text-purple-700 font-semibold text-xs sm:text-sm whitespace-nowrap">
                     Total: &nbsp;{calendarHomeDays + calendarAbroadDays} Days
                   </span>
                 </div>

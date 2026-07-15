@@ -110,7 +110,7 @@ export default function TravelForm({
     // FY configuration must exist
     if (!periodStartStr || !periodEndStr) {
       toast.error(
-        "Financial year configuration is not available. Please refresh and try again.",
+        "Financial year configuration is not available. Please refresh and try again."
       );
       return;
     }
@@ -123,7 +123,7 @@ export default function TravelForm({
       data.arrivalDate > periodEndStr
     ) {
       toast.error(
-        "Selected dates are not in range of the selected period configuration.",
+        "Selected dates are not in range of the selected period configuration."
       );
       return;
     }
@@ -149,33 +149,16 @@ export default function TravelForm({
     }
 
     // Existing overlapping check
-    // const isOverlapping = travelRecords.some((record) => {
-    //   if (initialData && record.recordId === initialData.recordId) return false;
-    //   if (!record.departureDate || !record.arrivalDate) return false;
-
-    //   const existStart = new Date(record.departureDate + "T00:00:00");
-    //   const existEnd = new Date(record.arrivalDate + "T00:00:00");
-
-    //   return newStart <= existEnd && newEnd >= existStart;
-    // });
     const isOverlapping = travelRecords.some((record) => {
       if (initialData && record.recordId === initialData.recordId) return false;
-
       if (!record.departureDate || !record.arrivalDate) return false;
 
       const existStart = new Date(record.departureDate + "T00:00:00");
       const existEnd = new Date(record.arrivalDate + "T00:00:00");
 
-      // allow adjacent records
-      if (
-        newStart.getTime() === existEnd.getTime() + 86400000 ||
-        newEnd.getTime() === existStart.getTime() - 86400000
-      ) {
-        return false;
-      }
-
       return newStart <= existEnd && newEnd >= existStart;
     });
+
     if (isOverlapping) {
       toast.error(
         "A travel record already exists within the selected date range.",
@@ -395,7 +378,7 @@ export default function TravelForm({
                   "Future travel records cannot be logged ahead of time.",
               },
             })}
-            className={`w-full px-3 py-2 bg-slate-50 border text-slate-900 rounded-lg text-base focus:bg-white outline-none transition placeholder-slate-400 h-[42px] ${
+            className={`w-full px-3 py-2 bg-slate-50 border text-slate-900 rounded-lg text-base focus:bg-white outline-none transition placeholder-slate-400 min-h-[42px] h-[42px] flex-none ${
               errors.departureDate
                 ? "border-red-400 focus:ring-2 focus:ring-red-200"
                 : "border-slate-200 focus:ring-2 focus:ring-blue-500"
@@ -434,7 +417,7 @@ export default function TravelForm({
                   "Travel end date must be on or after the start date.",
               },
             })}
-            className={`w-full px-3 py-2 bg-slate-50 border text-slate-900 rounded-lg text-base focus:bg-white outline-none transition placeholder-slate-400 h-[42px] ${
+            className={`w-full px-3 py-2 bg-slate-50 border text-slate-900 rounded-lg text-base focus:bg-white outline-none transition placeholder-slate-400 min-h-[42px] h-[42px] flex-none ${
               errors.arrivalDate
                 ? "border-red-400 focus:ring-2 focus:ring-red-200"
                 : "border-slate-200 focus:ring-2 focus:ring-blue-500"

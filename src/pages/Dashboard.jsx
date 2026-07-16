@@ -1,10 +1,12 @@
-import { useEffect } from "react"; // Added useEffect import
+import { useEffect, useRef } from "react"; // Added useEffect import
 import { BiLoaderAlt } from "react-icons/bi";
 import { FiMapPin, FiClock, FiCalendar, FiSend } from "react-icons/fi";
 import { useResidencyDashboard } from "../hooks/useResidencyDashboard";
-import React from "react"
+import React from "react";
+import { autoTrackLocation } from "../utils/locationTracker";
 export default function Dashboard() {
   const {
+    user, // Added cleanly here to resolve the ReferenceError
     profile,
     records,
     metricsLoading,
@@ -17,53 +19,79 @@ export default function Dashboard() {
     displayOutsideDays,
     remainingTargetDays,
     getFullCountryName,
-    handleTogglePresence, // Destructured check-in function from hook
+    handleTogglePresence,
+    handleFormSubmitCallback,
   } = useResidencyDashboard();
 
-  // 1. Destructure handleFormSubmitCallback from the hook at the top of your Dashboard function:
-  const {
-    // ... your other destructured properties
-    handleFormSubmitCallback, 
-  } = useResidencyDashboard();
+  // STOPS CO-CURRENT SUBMISSIONS IN INTERMEDIATE COMPONENT LIFECYCLES
+  const isCurrentlySubmittingGPS = useRef(false);
 
 // 2. Updated useEffect block with validation and storage synchronizer:
   useEffect(() => {
-    if (!metricsLoading && typeof handleFormSubmitCallback === "function") {
-      const todayStr = new Date().toLocaleDateString("en-CA"); 
-      const storageKey = `gps_checked_in_${todayStr}`;
-      
-      // Look up current record logs array to check if a GPS check-in exists for today
-      const activeRecordExists = records.some(
-        (r) => 
-          r.departureDate?.startsWith(todayStr) && 
-          r.purpose === "Daily GPS Check-In"
-      );
-
-      // If a record was deleted, cleanly remove the storage token to allow a re-checkin
-      if (!activeRecordExists && localStorage.getItem(storageKey)) {
-        localStorage.removeItem(storageKey);
-      }
-
-      const isCheckedInToday = localStorage.getItem(storageKey);
-
-      if (!isCheckedInToday && !activeRecordExists) {
-        localStorage.setItem(storageKey, "true");
-        
-        // Execute registration passing both required tracking parameters to fix Firebase schema validation
-        handleFormSubmitCallback({
-          departureDate: todayStr,
-          arrivalDate: todayStr,
-          fromCountry: profile?.homeCountry || "IN", // Explicitly added to fix Firestore addDoc undefined error
-          toCountry: profile?.homeCountry || "IN",   
-          purpose: "Daily GPS Check-In",
-          isAutoEntry: true
-        });
-      } else if (activeRecordExists && !isCheckedInToday) {
-        // Sync local storage state if a record already matches on fresh reload
-        localStorage.setItem(storageKey, "true");
-      }
+    // PREVENT FIRING PREMATURELY BEFORE LIVE FIRESTORE STREAM COMPLETES INITIAL LOADING
+    if (metricsLoading || typeof handleFormSubmitCallback !== "function") {
+      return;
     }
-  }, [metricsLoading, handleFormSubmitCallback, records, profile]);
+
+    const todayStr = new Date().toLocaleDateString("en-CA");
+    const storageKey = `gps_checked_in_${todayStr}`;
+
+    // Look up current record logs array to check if a GPS check-in exists for today
+    const activeRecordExists = records.some(
+      (r) =>
+        r.departureDate?.startsWith(todayStr) &&
+        r.purpose === "Daily GPS Check-In",
+    );
+
+    // INSTANT FORCE SYNC: If record is missing from DB, immediately clear local settings synchronously
+    // if (!activeRecordExists) {
+    //   localStorage.removeItem(storageKey);
+    //   isCurrentlySubmittingGPS.current = false;
+    // }
+    // INSTANT FORCE SYNC: Completely reset both storage and internal ref variables synchronously
+    if (!activeRecordExists) {
+      localStorage.removeItem(storageKey);
+      isCurrentlySubmittingGPS.current = false; // Directly updates the active operational guard reference
+    } else {
+      // If it does exist in the database, keep the ref synchronized to block duplicate triggers
+      isCurrentlySubmittingGPS.current = true;
+    }
+
+    // SAFETY GUARD: Wait until base settings match array stream context builds up securely
+    const hasInitialStayRecord = records.some((r) => r.purpose === "Initial Home Stay");
+    if (records.length > 0 && !hasInitialStayRecord) {
+      return;
+    }
+
+    // Read token right here AFTER the active database mismatch verification check runs
+    const isCheckedInToday = localStorage.getItem(storageKey);
+
+    // Strict single-execution check
+    if (
+      !isCheckedInToday &&
+      !activeRecordExists &&
+      !isCurrentlySubmittingGPS.current
+    ) {
+      isCurrentlySubmittingGPS.current = true;
+      localStorage.setItem(storageKey, "true");
+
+      autoTrackLocation(user, records, profile)
+        .then((tracked) => {
+          if (!tracked) {
+            isCurrentlySubmittingGPS.current = false;
+            localStorage.removeItem(storageKey);
+          }
+        })
+        .catch((err) => {
+          console.error(err);
+          isCurrentlySubmittingGPS.current = false;
+          localStorage.removeItem(storageKey);
+        });
+    } else if (activeRecordExists && !isCheckedInToday) {
+      localStorage.setItem(storageKey, "true");
+      isCurrentlySubmittingGPS.current = true;
+    }
+  }, [metricsLoading, handleFormSubmitCallback, records, profile, user]);
   if (metricsLoading) {
     return (
       <div className="h-[60vh] w-full flex items-center justify-center">
@@ -81,9 +109,7 @@ export default function Dashboard() {
     "Calendar Check-Out",
     "Automated System Entry",
   ];
-  const loggedTrips = records.filter(
-    (r) => !AUTO_PURPOSES.includes(r.purpose),
-  );
+  const loggedTrips = records.filter((r) => !AUTO_PURPOSES.includes(r.purpose));
   const recentTrips = [...loggedTrips]
     .sort(
       (a, b) => new Date(b.departureDate || 0) - new Date(a.departureDate || 0),
@@ -251,7 +277,9 @@ export default function Dashboard() {
 
       {/* ===== SEPARATE CARD: Projection ===== */}
       <div className="bg-green-50 border border-green-100 rounded-2xl p-4 sm:p-5">
-        <h4 className="font-bold text-green-800 mb-1.5 text-sm sm:text-base">Projection</h4>
+        <h4 className="font-bold text-green-800 mb-1.5 text-sm sm:text-base">
+          Projection
+        </h4>
         <p className="text-green-700 text-xs sm:text-sm">
           You need {remainingTargetDays} more days abroad within{" "}
           {runway.daysLeftInPeriod} remaining days of this tracking period.
@@ -261,9 +289,7 @@ export default function Dashboard() {
       {/* ===== SEPARATE CARD: Recent Trips ===== */}
       <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold text-slate-900">
-            Recent Trips
-          </h2>
+          <h2 className="text-xl font-semibold text-slate-900">Recent Trips</h2>
           <span className="bg-slate-100 text-slate-700 px-3 py-1 rounded-full text-sm font-medium">
             {loggedTrips.length} Logs
           </span>

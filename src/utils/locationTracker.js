@@ -14,7 +14,7 @@ export const autoTrackLocation = (
       }
 
       const today = new Date().toISOString().split("T")[0];
-      
+
       // Global atomic lock to block concurrent snapshot evaluations before Firestore updates
       if (window.isLocationTrackingActive === today) {
         resolve(false);
@@ -34,7 +34,8 @@ export const autoTrackLocation = (
             );
 
             const data = await response.json();
-            const currentCountryCode = data?.address?.country_code?.toUpperCase();
+            const currentCountryCode =
+              data?.address?.country_code?.toUpperCase();
 
             if (!currentCountryCode) {
               window.isLocationTrackingActive = null;
@@ -43,17 +44,24 @@ export const autoTrackLocation = (
             }
 
             // Dynamically find the absolute latest record by date to avoid sorting array bugs
-            const latestRecord = records.length > 0 
-              ? [...records].sort((a, b) => new Date(b.arrivalDate || b.departureDate) - new Date(a.arrivalDate || a.departureDate))[0]
-              : null;
+            const latestRecord =
+              records.length > 0
+                ? [...records].sort(
+                    (a, b) =>
+                      new Date(b.arrivalDate || b.departureDate) -
+                      new Date(a.arrivalDate || a.departureDate),
+                  )[0]
+                : null;
 
             const todayGpsRecordExists = records.some((r) => {
               const arrival = r.arrivalDate?.split("T")[0] || r.arrivalDate;
-              const departure = r.departureDate?.split("T")[0] || r.departureDate;
+              const departure =
+                r.departureDate?.split("T")[0] || r.departureDate;
               return (
                 arrival === today &&
                 departure === today &&
-                (r.purpose === "Daily GPS Check-In" || r.purpose === "Country Changed")
+                (r.purpose === "Daily GPS Check-In" ||
+                  r.purpose === "Country Changed")
               );
             });
 
@@ -62,22 +70,35 @@ export const autoTrackLocation = (
               return;
             }
 
-            // FIX: Determine baseline origin country dynamically, ensuring it scales with profile alterations
-            const activeProfileHome = (profile?.homeCountry || profile?.nativeCountry || currentCountryCode).toUpperCase();
-            let calculatedFromCountry = latestRecord ? latestRecord.toCountry : currentCountryCode;
-            
-            if (latestRecord && latestRecord.purpose === "Initial Home Stay") {
-              calculatedFromCountry = activeProfileHome;
+           
+            // FIX: Force target verification checks against profile values safely
+            const activeProfileHome = (
+              profile?.homeCountry ||
+              profile?.nativeCountry 
+            ).toUpperCase();
+
+            // If you are physically in your home country (IN), force the check-in to be completely local
+            let calculatedFromCountry = currentCountryCode;
+
+            if (latestRecord) {
+              if (latestRecord.purpose === "Initial Home Stay") {
+                calculatedFromCountry = activeProfileHome;
+              } else {
+                calculatedFromCountry = latestRecord.toCountry;
+              }
             }
 
-            const countryChanged = latestRecord && calculatedFromCountry !== currentCountryCode;
+            const countryChanged =
+              latestRecord && calculatedFromCountry !== currentCountryCode;
 
             await addTravelRecord(user.uid, {
               fromCountry: calculatedFromCountry,
               toCountry: currentCountryCode,
               departureDate: today,
               arrivalDate: today,
-              purpose: countryChanged ? "Country Changed" : "Daily GPS Check-In",
+              purpose: countryChanged
+                ? "Country Changed"
+                : "Daily GPS Check-In",
               latitude,
               longitude,
             });
@@ -105,12 +126,6 @@ export const autoTrackLocation = (
   });
 };
 
-
-
-
-
-
-
 // import { addTravelRecord } from "../firebase/firestoreService";
 
 // export const autoTrackLocation = (
@@ -126,7 +141,7 @@ export const autoTrackLocation = (
 //       }
 
 //       const today = new Date().toISOString().split("T")[0];
-      
+
 //       // Global atomic lock to block concurrent snapshot evaluations before Firestore updates
 //       if (window.isLocationTrackingActive === today) {
 //         resolve(false);
@@ -155,7 +170,7 @@ export const autoTrackLocation = (
 //             }
 
 //             // Dynamically find the absolute latest record by date to avoid sorting array bugs
-//             const latestRecord = records.length > 0 
+//             const latestRecord = records.length > 0
 //               ? [...records].sort((a, b) => new Date(b.arrivalDate || b.departureDate) - new Date(a.arrivalDate || a.departureDate))[0]
 //               : null;
 
@@ -209,8 +224,6 @@ export const autoTrackLocation = (
 //   });
 // };
 
-
-
 // // import { addTravelRecord } from "../firebase/firestoreService";
 
 // // export const autoTrackLocation = (
@@ -226,14 +239,14 @@ export const autoTrackLocation = (
 // //       }
 
 // //       const today = new Date().toISOString().split("T")[0];
-      
+
 // //       // Global atomic lock to block concurrent snapshot evaluations before Firestore updates
 // //       if (window.isLocationTrackingActive === today) {
 // //         resolve(false);
 // //         return;
 // //       }
 
-// //       // FIX: Set the lock synchronously IMMEDIATELY here to prevent parallel 
+// //       // FIX: Set the lock synchronously IMMEDIATELY here to prevent parallel
 // //       // component re-renders from bypassing the check during the geolocation delay.
 // //       window.isLocationTrackingActive = today;
 
@@ -309,9 +322,6 @@ export const autoTrackLocation = (
 // //     }
 // //   });
 // // };
-
-
-
 
 // // // import { addTravelRecord } from "../firebase/firestoreService";
 

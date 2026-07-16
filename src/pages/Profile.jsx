@@ -188,7 +188,7 @@ const initialEndParts = splitMonthDay(
 
   return (
     <div className="max-w-5xl mx-auto space-y-8 relative z-10 px-6 pb-4 text-left">
-      <div className="bg-gradient-to-r from-green-400 via-purple-400 to-pink-400 rounded-3xl p-8 shadow-2xl">
+      <div className="bg-gradient-to-r  from-blue-600 via-indigo-600 to-purple-600 rounded-3xl p-8 shadow-2xl">
         <h1 className="text-3xl font-bold text-white">Profile Configuration</h1>
         <p className="text-indigo-100 mt-2 text-base max-w-2xl">
           Set your personal thresholds and custom date parameters without

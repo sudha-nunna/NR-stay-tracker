@@ -6,6 +6,7 @@ import {
   FiPieChart,
   FiUser,
   FiGlobe,
+  FiMap,
   FiX,
 } from "react-icons/fi";
 
@@ -18,6 +19,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
       label: "Dashboard",
       icon: FiGrid,
     },
+    { path: "/trips-overview", label: "Trips Overview", icon: FiMap },
     {
       path: "/travel-history",
       label: "Travel History",

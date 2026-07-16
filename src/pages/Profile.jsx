@@ -187,17 +187,16 @@ const initialEndParts = splitMonthDay(
   };
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8 relative z-10 px-6 pb-4 text-left">
-      <div className="bg-gradient-to-r  from-blue-600 via-indigo-600 to-purple-600 rounded-3xl p-8 shadow-2xl">
-        <h1 className="text-3xl font-bold text-white">Profile Configuration</h1>
-        <p className="text-indigo-100 mt-2 text-base max-w-2xl">
-          Set your personal thresholds and custom date parameters without
-          entering year fields manually.
+    <div className="max-w-5xl mx-auto space-y-6 relative z-10 px-6 pb-1 text-left">
+      <div className="bg-gradient-to-r  from-blue-600 via-indigo-600 to-purple-600 rounded-3xl p-6 shadow-2xl">
+        <h1 className="text-3xl font-bold text-white">Profile Settings</h1>
+        <p className="text-indigo-100 mt-1 text-base max-w-2xl">
+          Set custom residency metrics and date parameters instantly.
         </p>
       </div>
 
-      <div className="bg-white border border-slate-200 shadow-xl rounded-3xl p-8">
-        <form onSubmit={handleSubmit(onUpdate)} className="space-y-5">
+      <div className="bg-white border border-slate-200 shadow-xl rounded-3xl p-6">
+        <form onSubmit={handleSubmit(onUpdate)} className="space-y-2">
           {/* Country Selection Dropdown Panel */}
           <div className="relative" ref={countryRef}>
             <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-2">
@@ -211,7 +210,7 @@ const initialEndParts = splitMonthDay(
               <FiChevronDown />
             </div>
             {countryDropdownOpen && (
-              <div className="absolute z-50 left-0 right-0 mt-2 bg-white rounded-xl border border-slate-200 shadow-xl overflow-hidden">
+              <div className="absolute z-50 left-0 right-0 mt-1 bg-white rounded-xl border border-slate-200 shadow-xl overflow-hidden">
                 <div className="flex items-center gap-2 p-3 border-b bg-slate-50">
                   <FiSearch className="text-slate-400" />
                   <input

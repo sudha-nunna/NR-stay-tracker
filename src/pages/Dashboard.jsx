@@ -26,7 +26,7 @@ export default function Dashboard() {
     handleFormSubmitCallback, 
   } = useResidencyDashboard();
 
-  // 2. Updated useEffect block with validation and storage synchronizer:
+// 2. Updated useEffect block with validation and storage synchronizer:
   useEffect(() => {
     if (!metricsLoading && typeof handleFormSubmitCallback === "function") {
       const todayStr = new Date().toLocaleDateString("en-CA"); 

@@ -363,11 +363,24 @@ export default function TravelHistory() {
           </p>
         </div>
 
-        <div className="relative w-full sm:w-auto shrink-0" ref={menuRef}>
+        {/* <div className="relative w-full sm:w-auto shrink-0" ref={menuRef}>
           <button
             type="button"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className="flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-xl shadow-md text-xs sm:text-sm font-semibold transition-all duration-300 cursor-pointer w-full sm:w-auto"
+          >
+            <FiPlus />
+            <span>Add Previous Travel Record</span>
+            <FiChevronDown
+              className={`transition-transform duration-200 ${isMenuOpen ? "rotate-180" : ""}`}
+            />
+          </button> */}
+       {/* Changed mx-auto sm:mx-0 to ml-auto to pull the button cleanly to the right on all devices */}
+        <div className="relative w-max max-w-full ml-auto shrink-0" ref={menuRef}>
+          <button
+            type="button"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className="flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-xl shadow-md text-xs sm:text-sm font-semibold transition-all duration-300 cursor-pointer w-auto"
           >
             <FiPlus />
             <span>Add Previous Travel Record</span>
@@ -435,7 +448,7 @@ export default function TravelHistory() {
           </div>
         </div>
       </div>
-      {records.length > 0 && (
+      {/* {records.length > 0 && (
         <div className="flex justify-end">
           <button
             type="button"
@@ -446,8 +459,19 @@ export default function TravelHistory() {
             Export Excel Report
           </button>
         </div>
+      )} */}
+       {records.length > 0 && (
+        <div className="flex justify-end sm:justify-end">
+          <button
+            type="button"
+            onClick={handleExportData}
+            className="w-auto flex items-center justify-center gap-2 px-4 py-2  bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-xl shadow-md text-xs sm:text-sm font-semibold transition-all duration-300 cursor-pointer w-auto"
+          >
+            <FiDownloadCloud className="text-base text-white" />
+            Export Excel Report
+          </button>
+        </div>
       )}
-
       <div className="w-full">
         <div className="bg-white border border-slate-200 rounded-3xl shadow-sm">
           <div className="p-4 sm:p-5 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">

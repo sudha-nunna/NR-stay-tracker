@@ -104,26 +104,46 @@ const activeAllocatedPercentage = Math.min(
   Math.round((activeDaysLogged / activeLocalThreshold) * 100),
   100,
 );
+  // return (
+  //   <div className="space-y-6 relative z-10 text-left">
+  //     <div className="flex items-center justify-between">
+  //       <div>
+  //         <h1 className="text-3xl font-bold text-slate-900">
+  //           Analytics Dashboard
+  //         </h1>
+  //         <p className="mt-2 text-slate-500">
+  //           Comprehensive travel and residency insights.
+  //         </p>
+  //       </div>
+
+  //       <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-5 py-3 rounded-2xl shadow-lg">
+  //         <p className="text-xs uppercase tracking-wide opacity-80">
+  //           Total Stay Days
+  //         </p>
+  //         <h2 className="text-2xl font-bold">{homeDays + internationalDays}</h2>
+  //       </div>
+  //     </div>
   return (
     <div className="space-y-6 relative z-10 text-left">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900">
+      {/* Updated items alignment and gap to prevent overlapping or crushing on small screens */}
+      <div className="flex items-start sm:items-center justify-between gap-4">
+        <div className="min-w-0">
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
             Analytics Dashboard
           </h1>
-          <p className="mt-2 text-slate-500">
+          <p className="mt-1 sm:mt-2 text-xs sm:text-sm text-slate-500">
             Comprehensive travel and residency insights.
           </p>
         </div>
 
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-5 py-3 rounded-2xl shadow-lg">
-          <p className="text-xs uppercase tracking-wide opacity-80">
+        {/* Added shrink-0 and text-center to keep the badge perfectly shaped and aligned on mobile */}
+        <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 sm:px-5 sm:py-3 rounded-2xl shadow-lg shrink-0 text-center w-max ml-auto">
+          <p className="text-[10px] sm:text-xs uppercase tracking-wide opacity-80 whitespace-nowrap">
             Total Stay Days
           </p>
-          <h2 className="text-2xl font-bold">{homeDays + internationalDays}</h2>
+          <h2 className="text-xl sm:text-2xl font-bold mt-0.5">{homeDays + internationalDays}</h2>
         </div>
       </div>
-
       {/* KPI CARDS */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm">

@@ -100,3 +100,7 @@ textarea {
 .overscroll-contain {
   overscroll-behavior: contain;
 }
+/* Standardized styling configurations for select layouts */
+select option {
+  font-size: 14px;
+}

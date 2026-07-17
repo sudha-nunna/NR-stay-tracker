@@ -57,6 +57,16 @@ export default function Register() {
 
   const countryRef = useRef(null);
   const timezoneRef = useRef(null);
+  // Custom Dropdown Open States for Month & Day Pickers
+  const [startMonthOpen, setStartMonthOpen] = useState(false);
+  const [startDayOpen, setStartDayOpen] = useState(false);
+  const [endMonthOpen, setEndMonthOpen] = useState(false);
+  const [endDayOpen, setEndDayOpen] = useState(false);
+
+  const startMonthRef = useRef(null);
+  const startDayRef = useRef(null);
+  const endMonthRef = useRef(null);
+  const endDayRef = useRef(null);
 
   // Picker dates local state tracking
   const startYear = new Date().getFullYear();
@@ -102,6 +112,18 @@ export default function Register() {
       }
       if (timezoneRef.current && !timezoneRef.current.contains(event.target)) {
         setTimezoneDropdownOpen(false);
+      }
+      if (startMonthRef.current && !startMonthRef.current.contains(event.target)) {
+        setStartMonthOpen(false);
+      }
+      if (startDayRef.current && !startDayRef.current.contains(event.target)) {
+        setStartDayOpen(false);
+      }
+      if (endMonthRef.current && !endMonthRef.current.contains(event.target)) {
+        setEndMonthOpen(false);
+      }
+      if (endDayRef.current && !endDayRef.current.contains(event.target)) {
+        setEndDayOpen(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -506,6 +528,7 @@ export default function Register() {
             </div>
 
             {/* Section 3: Refactored Day-Month Range Pickers */}
+            {/* Section 3: Refactored Day-Month Range Pickers */}
             <div className="space-y-4">
               <div>
                 <h3 className="text-base font-bold uppercase tracking-wider text-[#2B4593]">
@@ -518,29 +541,57 @@ export default function Register() {
                   <label className="block text-base font-semibold text-slate-700 uppercase tracking-wide mb-2">
                     Start (Month & Day)
                   </label>
-                  <div className="flex gap-2">
-                    <select
-                      value={startMonth}
-                      onChange={(e) => setStartMonth(e.target.value)}
-                      className="w-1/2 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-[16px] outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 transition"
-                    >
-                      {GLOBAL_MONTHS.map((m) => (
-                        <option key={m.value} value={m.value}>
-                          {m.label}
-                        </option>
-                      ))}
-                    </select>
-                    <select
-                      value={startDay}
-                      onChange={(e) => setStartDay(e.target.value)}
-                      className="w-1/2 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-[16px] outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 transition"
-                    >
-                      {getDaysInMonth(startMonth).map((d) => (
-                        <option key={d} value={d}>
-                          {d}
-                        </option>
-                      ))}
-                    </select>
+                  <div className="grid grid-cols-2 gap-2 w-full">
+                    {/* Custom Dropdown Month Picker */}
+                   {/* Custom Dropdown Month Picker */}
+                    <div className="relative w-full" ref={startMonthRef}>
+                      <div
+                        onClick={() => setStartMonthOpen(!startMonthOpen)}
+                        className="w-full h-10 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-base flex items-center justify-between cursor-pointer outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 transition"
+                      >
+                        <span className="truncate">
+                          {GLOBAL_MONTHS.find((m) => m.value === startMonth)?.label || "Select Month"}
+                        </span>
+                        <FiChevronDown className="text-slate-400 shrink-0" />
+                      </div>
+                      {startMonthOpen && (
+                        <div className="absolute z-50 left-0 right-0 bottom-full mb-1 bg-white border border-slate-200 rounded-lg shadow-xl max-h-48 overflow-y-auto">
+                          {GLOBAL_MONTHS.map((m) => (
+                            <div
+                              key={m.value}
+                              onClick={() => { setStartMonth(m.value); setStartMonthOpen(false); }}
+                              className={`px-3 py-2 text-base cursor-pointer hover:bg-slate-50 transition-colors ${startMonth === m.value ? "bg-indigo-50 font-bold text-blue-600" : "text-slate-700"}`}
+                            >
+                              {m.label}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Custom Dropdown Day Picker */}
+                    <div className="relative w-full" ref={startDayRef}>
+                      <div
+                        onClick={() => setStartDayOpen(!startDayOpen)}
+                        className="w-full h-10 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-base flex items-center justify-between cursor-pointer outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 transition"
+                      >
+                        <span className="truncate">{startDay || "Select Day"}</span>
+                        <FiChevronDown className="text-slate-400 shrink-0" />
+                      </div>
+                      {startDayOpen && (
+                        <div className="absolute z-50 left-0 right-0 bottom-full mb-1 bg-white border border-slate-200 rounded-lg shadow-xl max-h-48 overflow-y-auto">
+                          {getDaysInMonth(startMonth).map((d) => (
+                            <div
+                              key={d}
+                              onClick={() => { setStartDay(d); setStartDayOpen(false); }}
+                              className={`px-3 py-2 text-base cursor-pointer hover:bg-slate-50 transition-colors ${startDay === d ? "bg-indigo-50 font-bold text-blue-600" : "text-slate-700"}`}
+                            >
+                              {d}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
                   <input
                     type="hidden"
@@ -560,35 +611,56 @@ export default function Register() {
                   <label className="block text-base font-semibold text-slate-700 uppercase tracking-wide mb-2">
                     End (Month & Day)
                   </label>
-                  <div className="flex gap-2">
-                    <select
-                      value={endMonth}
-                      onChange={(e) => {
-                        setEndMonth(e.target.value);
-                        setEndTouched(true);
-                      }}
-                      className="w-1/2 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-[16px] outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 transition"
-                    >
-                      {GLOBAL_MONTHS.map((m) => (
-                        <option key={m.value} value={m.value}>
-                          {m.label}
-                        </option>
-                      ))}
-                    </select>
-                    <select
-                      value={endDay}
-                      onChange={(e) => {
-                        setEndDay(e.target.value);
-                        setEndTouched(true);
-                      }}
-                      className="w-1/2 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-[16px] outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 transition"
-                    >
-                      {getDaysInMonth(endMonth).map((d) => (
-                        <option key={d} value={d}>
-                          {d}
-                        </option>
-                      ))}
-                    </select>
+                  <div className="grid grid-cols-2 gap-2 w-full">
+                    {/* Custom Dropdown End Month Picker */}
+                    <div className="relative w-full" ref={endMonthRef}>
+                      <div
+                        onClick={() => setEndMonthOpen(!endMonthOpen)}
+                        className="w-full h-10 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-base flex items-center justify-between cursor-pointer outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 transition"
+                      >
+                        <span className="truncate">
+                          {GLOBAL_MONTHS.find((m) => m.value === endMonth)?.label || "Select Month"}
+                        </span>
+                        <FiChevronDown className="text-slate-400 shrink-0" />
+                      </div>
+                      {endMonthOpen && (
+                        <div className="absolute z-50 left-0 right-0 bottom-full mb-1 bg-white border border-slate-200 rounded-lg shadow-xl max-h-48 overflow-y-auto">
+                          {GLOBAL_MONTHS.map((m) => (
+                            <div
+                              key={m.value}
+                              onClick={() => { setEndMonth(m.value); setEndTouched(true); setEndMonthOpen(false); }}
+                              className={`px-3 py-2 text-base cursor-pointer hover:bg-slate-50 transition-colors ${endMonth === m.value ? "bg-indigo-50 font-bold text-blue-600" : "text-slate-700"}`}
+                            >
+                              {m.label}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Custom Dropdown End Day Picker */}
+                    <div className="relative w-full" ref={endDayRef}>
+                      <div
+                        onClick={() => setEndDayOpen(!endDayOpen)}
+                        className="w-full h-10 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-base flex items-center justify-between cursor-pointer outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 transition"
+                      >
+                        <span className="truncate">{endDay || "Select Day"}</span>
+                        <FiChevronDown className="text-slate-400 shrink-0" />
+                      </div>
+                      {endDayOpen && (
+                        <div className="absolute z-50 left-0 right-0 bottom-full mb-1 bg-white border border-slate-200 rounded-lg shadow-xl max-h-48 overflow-y-auto">
+                          {getDaysInMonth(endMonth).map((d) => (
+                            <div
+                              key={d}
+                              onClick={() => { setEndDay(d); setEndTouched(true); setEndDayOpen(false); }}
+                              className={`px-3 py-2 text-base cursor-pointer hover:bg-slate-50 transition-colors ${endDay === d ? "bg-indigo-50 font-bold text-blue-600" : "text-slate-700"}`}
+                            >
+                              {d}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
                   <input
                     type="hidden"

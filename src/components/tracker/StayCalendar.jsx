@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState ,useRef,useEffect} from "react";
 import {
   parseISO,
   format,
@@ -17,6 +17,7 @@ import {
 import {
   FiChevronLeft,
   FiChevronRight,
+  FiChevronDown,
   FiGlobe,
   FiHome,
   FiCalendar,
@@ -30,6 +31,13 @@ export default function StayCalendar({
   travelRecords = [],
 }) {
   const [currentViewDate, setCurrentViewDate] = useState(new Date());
+  
+  // Custom Dropdown Open States & Component Refs
+  const [monthDropdownOpen, setMonthDropdownOpen] = useState(false);
+  const [yearDropdownOpen, setYearDropdownOpen] = useState(false);
+  const monthRef = useRef(null);
+  const yearRef = useRef(null);
+
   const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
   const MONTHS_LIST = [
@@ -63,13 +71,23 @@ export default function StayCalendar({
     setCurrentViewDate((prev) => setMonth(prev, parseInt(e.target.value, 10)));
   };
 
-  const handleYearChange = (e) => {
-    setCurrentViewDate((prev) => setYear(prev, parseInt(e.target.value, 10)));
-  };
-
   const handleResetToToday = () => {
     setCurrentViewDate(new Date());
   };
+
+  // Close calendar custom header dropdowns on outside context interaction taps
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (monthRef.current && !monthRef.current.contains(event.target)) {
+        setMonthDropdownOpen(false);
+      }
+      if (yearRef.current && !yearRef.current.contains(event.target)) {
+        setYearDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const monthStart = startOfMonth(currentViewDate);
   const monthEnd = endOfMonth(currentViewDate);
@@ -128,29 +146,63 @@ export default function StayCalendar({
             <span className="hidden xs:inline">Today</span>
           </button>
 
-          <select
-            value={currentViewDate.getMonth()}
-            onChange={handleMonthChange}
-            className="px-2 py-1.5 bg-white border border-slate-200 text-slate-800 text-[16px] font-bold rounded-xl hover:border-slate-300 transition outline-none cursor-pointer h-8 shadow-sm"
-          >
-            {MONTHS_LIST.map((m, index) => (
-              <option key={m} value={index}>
-                {m.substring(0, 3)}
-              </option>
-            ))}
-          </select>
+          {/* Custom Month Dropdown Selector Node Component */}
+          <div className="relative" ref={monthRef}>
+            <div
+              onClick={() => { setMonthDropdownOpen(!monthDropdownOpen); setYearDropdownOpen(false); }}
+              className="px-3 py-1.5 bg-white border border-slate-200 text-slate-800 text-sm font-bold rounded-xl hover:border-slate-300 transition cursor-pointer h-8 flex items-center justify-between gap-1 shadow-sm select-none"
+            >
+              <span>{MONTHS_LIST[currentViewDate.getMonth()].substring(0, 3)}</span>
+              <FiChevronDown className="text-slate-400 shrink-0" size={14} />
+            </div>
+            {monthDropdownOpen && (
+              <div className="absolute z-50 left-0 mt-1 min-w-[110px] bg-white border border-slate-200 rounded-xl shadow-xl max-h-48 overflow-y-auto">
+                {MONTHS_LIST.map((m, index) => (
+                  <div
+                    key={m}
+                    onClick={() => {
+                      setCurrentViewDate((prev) => setMonth(prev, index));
+                      setMonthDropdownOpen(false);
+                    }}
+                    className={`px-3 py-1.5 text-sm cursor-pointer transition-colors hover:bg-slate-50 ${
+                      currentViewDate.getMonth() === index ? "bg-blue-50 text-blue-600 font-bold" : "text-slate-700"
+                    }`}
+                  >
+                    {m}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
 
-          <select
-            value={currentViewDate.getFullYear()}
-            onChange={handleYearChange}
-            className="px-2 py-1.5 bg-white border border-slate-200 text-slate-800 text-[16px] font-bold rounded-xl hover:border-slate-300 transition outline-none cursor-pointer h-8 shadow-sm"
-          >
-            {YEARS_LIST.map((y) => (
-              <option key={y} value={y}>
-                {y}
-              </option>
-            ))}
-          </select>
+          {/* Custom Year Dropdown Selector Node Component */}
+          <div className="relative" ref={yearRef}>
+            <div
+              onClick={() => { setYearDropdownOpen(!yearDropdownOpen); setMonthDropdownOpen(false); }}
+              className="px-3 py-1.5 bg-white border border-slate-200 text-slate-800 text-sm font-bold rounded-xl hover:border-slate-300 transition cursor-pointer h-8 flex items-center justify-between gap-1 shadow-sm select-none"
+            >
+              <span>{currentViewDate.getFullYear()}</span>
+              <FiChevronDown className="text-slate-400 shrink-0" size={14} />
+            </div>
+            {yearDropdownOpen && (
+              <div className="absolute z-50 left-0 mt-1 min-w-[90px] bg-white border border-slate-200 rounded-xl shadow-xl max-h-48 overflow-y-auto">
+                {YEARS_LIST.map((y) => (
+                  <div
+                    key={y}
+                    onClick={() => {
+                      setCurrentViewDate((prev) => setYear(prev, y));
+                      setYearDropdownOpen(false);
+                    }}
+                    className={`px-3 py-1.5 text-sm cursor-pointer transition-colors hover:bg-slate-50 ${
+                      currentViewDate.getFullYear() === y ? "bg-blue-50 text-blue-600 font-bold" : "text-slate-700"
+                    }`}
+                  >
+                    {y}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
 
           <div className="flex items-center border border-slate-200 rounded-xl bg-white overflow-hidden h-8 shadow-sm">
             <button

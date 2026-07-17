@@ -187,16 +187,16 @@ const initialEndParts = splitMonthDay(
   };
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6 relative z-10 px-6 pb-1 text-left">
-      <div className="bg-gradient-to-r  from-blue-600 via-indigo-600 to-purple-600 rounded-3xl p-6 shadow-2xl">
-        <h1 className="text-3xl font-bold text-white">Profile Settings</h1>
-        <p className="text-indigo-100 mt-1 text-base max-w-2xl">
+    <div className="max-w-5xl mx-auto space-y-3 relative z-10 px-3 md:px-6 pb-1 text-left w-full overflow-hidden">
+      <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 rounded-2xl p-4 md:p-6 shadow-xl">
+        <h1 className="text-xl md:text-3xl font-bold text-white">Profile Settings</h1>
+        <p className="text-indigo-100 mt-0.5 text-xs md:text-base max-w-2xl">
           Set custom residency metrics and date parameters instantly.
         </p>
       </div>
 
       <div className="bg-white border border-slate-200 shadow-xl rounded-3xl p-6">
-        <form onSubmit={handleSubmit(onUpdate)} className="space-y-2">
+        <form onSubmit={handleSubmit(onUpdate)} className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Country Selection Dropdown Panel */}
           <div className="relative" ref={countryRef}>
             <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-2">
@@ -323,90 +323,89 @@ const initialEndParts = splitMonthDay(
             />
           </div>
 
-          {/* Financial Cycle Dropdowns Mapping */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* Start Window Selection Dropdown Panel */}
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-2">
-                Financial Year Start
-              </label>
-              <div className="flex gap-2">
-                <select
-                  value={startMonth}
-                  onChange={(e) => setStartMonth(e.target.value)}
-                  className="w-1/2 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-base outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 transition"
-                >
-                  <option value="">Month (Not Set)</option>
-                  {GLOBAL_MONTHS.map((m) => (
-                    <option key={m.value} value={m.value}>
-                      {m.label}
-                    </option>
-                  ))}
-                </select>
-                <select
-                  value={startDay}
-                  onChange={(e) => setStartDay(e.target.value)}
-                  className="w-1/2 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-base outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 transition"
-                >
-                  <option value="">Day (Not Set)</option>
-                  {getDaysInMonth(startMonth).map((d) => (
-                    <option key={d} value={d}>
-                      {d}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <input type="hidden" {...register("fyStart")} />
+          {/* Financial Year Start Selectors Group */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-2">
+              Financial Year Start
+            </label>
+            <div className="flex gap-2">
+              <select
+                value={startMonth}
+                onChange={(e) => setStartMonth(e.target.value)}
+                className="w-1/2 px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-sm outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 transition"
+              >
+                <option value="">Month (Not Set)</option>
+                {GLOBAL_MONTHS.map((m) => (
+                  <option key={m.value} value={m.value}>
+                    {m.label}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={startDay}
+                onChange={(e) => setStartDay(e.target.value)}
+                className="w-1/2 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-sm outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 transition"
+              >
+                <option value="">Day (Not Set)</option>
+                {getDaysInMonth(startMonth).map((d) => (
+                  <option key={d} value={d}>
+                    {d}
+                  </option>
+                ))}
+              </select>
             </div>
-
-            {/* End Window Selection Dropdown Panel */}
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-2">
-                Financial Year End
-              </label>
-              <div className="flex gap-2">
-                <select
-                  value={endMonth}
-                  onChange={(e) => setEndMonth(e.target.value)}
-                  className="w-1/2 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-base outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 transition"
-                >
-                  <option value="">Month (Not Set)</option>
-                  {GLOBAL_MONTHS.map((m) => (
-                    <option key={m.value} value={m.value}>
-                      {m.label}
-                    </option>
-                  ))}
-                </select>
-                <select
-                  value={endDay}
-                  onChange={(e) => setEndDay(e.target.value)}
-                  className="w-1/2 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-base outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 transition"
-                >
-                  <option value="">Day (Not Set)</option>
-                  {getDaysInMonth(endMonth).map((d) => (
-                    <option key={d} value={d}>
-                      {d}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <input type="hidden" {...register("fyEnd")} />
-            </div>
+            <input type="hidden" {...register("fyStart")} />
           </div>
 
-          {/* Action Submit Core Button Trigger */}
-          <button
-            type="submit"
-            disabled={saving || !isDirty}
-            className="w-full py-3.5 rounded-xl font-semibold text-white bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 transition flex items-center justify-center cursor-pointer shadow-lg disabled:opacity-50"
-          >
-            {saving ? (
-              <BiLoaderAlt className="animate-spin mr-2 text-xl" />
-            ) : (
-              <FiSave className="mr-1.5 text-base" />
-            )}
-            <span>Save Changes</span>
-          </button>
+          {/* Financial Year End Selectors Group */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-2">
+              Financial Year End
+            </label>
+            <div className="flex gap-2">
+              <select
+                value={endMonth}
+                onChange={(e) => setEndMonth(e.target.value)}
+                className="w-1/2 px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-sm outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 transition"
+              >
+                <option value="">Month (Not Set)</option>
+                {GLOBAL_MONTHS.map((m) => (
+                  <option key={m.value} value={m.value}>
+                    {m.label}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={endDay}
+                onChange={(e) => setEndDay(e.target.value)}
+                className="w-1/2 px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-sm outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 transition"
+              >
+                <option value="">Day (Not Set)</option>
+                {getDaysInMonth(endMonth).map((d) => (
+                  <option key={d} value={d}>
+                    {d}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <input type="hidden" {...register("fyEnd")} />
+          </div>
+
+          {/* Action Submit Button Container - Spanning Full Grid Width */}
+          <div className="md:col-span-2 pt-2">
+            <button
+              type="submit"
+              disabled={saving || !isDirty}
+              className="w-full py-3 rounded-xl font-semibold text-white bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 transition flex items-center justify-center cursor-pointer shadow-lg disabled:opacity-50 text-sm"
+            >
+              {saving ? (
+                <BiLoaderAlt className="animate-spin mr-2 text-xl" />
+              ) : (
+                <FiSave className="mr-1.5 text-base" />
+              )}
+              <span>Save Changes</span>
+            </button>
+          </div>
         </form>
       </div>
     </div>

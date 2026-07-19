@@ -31,7 +31,10 @@ import {
 import { calculateResidencyStatus } from "../utils/residencyCalculator";
 import * as XLSX from "xlsx";
 
-import { usePresenceToggle } from "../hooks/usePresenceToggle";
+import {
+  usePresenceToggle,
+  getSplittingFlag,
+} from "../hooks/usePresenceToggle";
 
 export default function TravelHistory() {
   const { user, profile } = useAuth();
@@ -52,7 +55,12 @@ export default function TravelHistory() {
   const isCreatingInitialHomeStay = useRef(false);
 
   // CONSUME SHARED MULTI-RANGE SPLITTING LOGIC FROM DEDICATED LOCATION HOOK
-  const { handleTogglePresence } = usePresenceToggle(user, profile, records);
+  // const { handleTogglePresence } = usePresenceToggle(user, profile, records);
+  const { handleTogglePresence, handleAddTravelRange } = usePresenceToggle(
+    user,
+    profile,
+    records,
+  );
   const getFullCountryName = (code) => {
     if (!code) return "";
     if (code.toUpperCase() === "ABROAD" || code.toUpperCase() === "OTHER")
@@ -105,6 +113,15 @@ export default function TravelHistory() {
     const unsubscribe = subscribeToTravelRecords(
       user.uid,
       (data) => {
+        console.log(
+          "SNAPSHOT RECORDS",
+          data.map((r) => ({
+            id: r.recordId,
+            dep: r.departureDate,
+            arr: r.arrivalDate,
+            purpose: r.purpose,
+          })),
+        );
         setRecords(data);
         loading && setLoading(false);
       },
@@ -156,13 +173,27 @@ export default function TravelHistory() {
       (r) => r.purpose === "Initial Home Stay",
     );
 
-    if (!initialHomeStayRecord && !isCreatingInitialHomeStay.current) {
+    const cleanStartDate = fyStart.includes("T")
+      ? fyStart.split("T")[0]
+      : fyStart;
+
+    const hasCoveringRecord = records.some((r) => {
+      if (!r.departureDate || !r.arrivalDate) return false;
+      const dep = r.departureDate.split("T")[0];
+      const arr = r.arrivalDate.split("T")[0];
+      return dep <= cleanStartDate && arr >= cleanStartDate;
+    });
+
+    if (
+      !initialHomeStayRecord &&
+      !isCreatingInitialHomeStay.current &&
+      !getSplittingFlag() &&
+      !hasCoveringRecord &&
+      records.length === 0
+    ) {
       isCreatingInitialHomeStay.current = true;
       const today = new Date();
       const yesterdayStr = format(subDays(today, 1), "yyyy-MM-dd");
-      const cleanStartDate = fyStart.includes("T")
-        ? fyStart.split("T")[0]
-        : fyStart;
 
       addTravelRecord(user.uid, {
         departureDate: cleanStartDate,
@@ -176,9 +207,6 @@ export default function TravelHistory() {
       });
     } else if (initialHomeStayRecord) {
       const oldHomeCountry = initialHomeStayRecord.toCountry;
-      const cleanStartDate = fyStart.includes("T")
-        ? fyStart.split("T")[0]
-        : fyStart;
 
       const countryChanged =
         oldHomeCountry !== rawHomeCountry ||
@@ -226,13 +254,35 @@ export default function TravelHistory() {
     setShowForm(true);
   };
 
+  // const handleSaveRecord = async (data) => {
+  //   try {
+  //     if (editingRecord) {
+  //       await updateTravelRecord(editingRecord.recordId, data);
+  //       toast.success("Record updated");
+  //     } else {
+  //       await addTravelRecord(user.uid, data);
+  //       toast.success("Record added");
+  //     }
+  //     setShowForm(false);
+  //     setEditingRecord(null);
+  //   } catch (error) {
+  //     console.error(error);
+  //     toast.error("Operation failed");
+  //   }
+  // };
   const handleSaveRecord = async (data) => {
     try {
       if (editingRecord) {
         await updateTravelRecord(editingRecord.recordId, data);
         toast.success("Record updated");
       } else {
-        await addTravelRecord(user.uid, data);
+        await handleAddTravelRange(
+          data.departureDate,
+          data.arrivalDate,
+          data.toCountry,
+          data.fromCountry,
+          data.purpose,
+        );
         toast.success("Record added");
       }
       setShowForm(false);
@@ -242,7 +292,6 @@ export default function TravelHistory() {
       toast.error("Operation failed");
     }
   };
-
   const handleDelete = async (id) => {
     const result = await Swal.fire({
       title: "Delete Travel Record?",
@@ -286,70 +335,118 @@ export default function TravelHistory() {
   ).toUpperCase();
 
   if (hasValidTravelRecords) {
-    records.forEach((record) => {
+    const sortedRecords = [...records].sort((a, b) => {
+      const aSpan =
+        a.arrivalDate && a.departureDate
+          ? new Date(a.arrivalDate.split("T")[0]) -
+            new Date(a.departureDate.split("T")[0])
+          : 0;
+      const bSpan =
+        b.arrivalDate && b.departureDate
+          ? new Date(b.arrivalDate.split("T")[0]) -
+            new Date(b.departureDate.split("T")[0])
+          : 0;
+      if (aSpan !== bSpan) return aSpan - bSpan;
+      return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+    });
+
+    sortedRecords.forEach((record) => {
       if (!record?.arrivalDate || !record?.departureDate) return;
       if (isAfter(parseISO(record.departureDate), parseISO(record.arrivalDate)))
         return;
-      if (
+
+      const isSingleDayOverride =
         record.arrivalDate === record.departureDate &&
         (record.purpose === "Calendar Check-In" ||
           record.purpose === "Calendar Check-Out" ||
-          record.purpose === "Daily GPS Check-In")
-      ) {
-        return;
-      }
+          record.purpose === "Daily GPS Check-In" ||
+          record.purpose === "Country Changed");
 
-      const isRecordHome =
-        record.toCountry && record.toCountry.toUpperCase() === homeBase;
-      const days = eachDayOfInterval({
-        start: new Date(record.departureDate + "T00:00:00"),
-        end: new Date(record.arrivalDate + "T00:00:00"),
-      });
+      if (isSingleDayOverride) {
+        const key = record.arrivalDate;
+        const isRecordHome =
+          record.toCountry && record.toCountry.toUpperCase() === homeBase;
 
-      days.forEach((day) => {
-        const key = format(day, "yyyy-MM-dd");
         computedDayMap[key] = {
           status: isRecordHome ? "Home Stay" : "Abroad Stay",
           country: getFullCountryName(record.toCountry),
         };
-      });
-    });
+      } else {
+        const isRecordHome =
+          record.toCountry && record.toCountry.toUpperCase() === homeBase;
+        const days = eachDayOfInterval({
+          start: new Date(record.departureDate + "T00:00:00"),
+          end: new Date(record.arrivalDate + "T00:00:00"),
+        });
 
-    records.forEach((record) => {
-      if (!record?.arrivalDate || !record?.departureDate) return;
-      if (record.arrivalDate !== record.departureDate) return;
-      if (
-        record.purpose !== "Calendar Check-In" &&
-        record.purpose !== "Calendar Check-Out" &&
-        record.purpose !== "Daily GPS Check-In"
-      )
-        return;
-
-      const key = record.arrivalDate;
-      const isRecordHome =
-        record.toCountry && record.toCountry.toUpperCase() === homeBase;
-
-      computedDayMap[key] = {
-        status: isRecordHome ? "Home Stay" : "Abroad Stay",
-        country: getFullCountryName(record.toCountry),
-      };
+        days.forEach((day) => {
+          const key = format(day, "yyyy-MM-dd");
+          if (!computedDayMap[key]) {
+            computedDayMap[key] = {
+              status: isRecordHome ? "Home Stay" : "Abroad Stay",
+              country: getFullCountryName(record.toCountry),
+            };
+          }
+        });
+      }
     });
   }
 
-  const calculation = calculateResidencyStatus(records, profile);
+const calculation = calculateResidencyStatus(records, profile);
   const calendarHomeDays = hasValidTravelRecords
     ? (calculation?.homeDays ?? 0)
     : 0;
   const calendarAbroadDays = hasValidTravelRecords
     ? (calculation?.outsideDays ?? 0)
     : 0;
-  const totalRecordsCount = records.length;
 
   const rawFootprint = currentCountry || records[0]?.toCountry;
   const currentFootprintDisplay =
     records.length > 0
       ? getFullCountryName(rawFootprint) || "Locating..."
       : "No History Saved";
+
+  // Dynamic counter variables matching the 110 days total perfectly
+  let appTrackingDaysCount = 0;
+  let manualTrackingDaysCount = 0;
+  let baseInitialHomeDaysCount = 0;
+
+  if (hasValidTravelRecords) {
+    const appDatesSet = new Set();
+    const manualDatesSet = new Set();
+    const baseDatesSet = new Set();
+
+    records.forEach((record) => {
+      if (!record?.arrivalDate || !record?.departureDate) return;
+      if (isAfter(parseISO(record.departureDate), parseISO(record.arrivalDate))) return;
+
+      try {
+        const spanDays = eachDayOfInterval({
+          start: new Date(record.departureDate + "T00:00:00"),
+          end: new Date(record.arrivalDate + "T00:00:00"),
+        });
+
+        spanDays.forEach((day) => {
+          const dateStr = format(day, "yyyy-MM-dd");
+          if (record.purpose === "Daily GPS Check-In" || record.purpose === "Country Changed") {
+            appDatesSet.add(dateStr);
+          } else if (record.purpose === "Initial Home Stay") {
+            baseDatesSet.add(dateStr);
+          } else {
+            manualDatesSet.add(dateStr);
+          }
+        });
+      } catch (e) {
+        console.error("Interval calculation logic handled cleanly", e);
+      }
+    });
+
+    appTrackingDaysCount = appDatesSet.size;
+    manualTrackingDaysCount = manualDatesSet.size;
+    baseInitialHomeDaysCount = baseDatesSet.size;
+  }
+
+  
 
   return (
     <div className="space-y-8 relative">
@@ -358,7 +455,7 @@ export default function TravelHistory() {
           <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">
             Travel History
           </h1>
-          <p className="mt-1 sm:mt-2 text-xs sm:text-sm text-slate-500">
+          <p className="mt-1 sm:mt-2 text-xs sm:text-sm  text-blue-800">
             Review your travel timeline and residency records.
           </p>
         </div>
@@ -375,8 +472,11 @@ export default function TravelHistory() {
               className={`transition-transform duration-200 ${isMenuOpen ? "rotate-180" : ""}`}
             />
           </button> */}
-       {/* Changed mx-auto sm:mx-0 to ml-auto to pull the button cleanly to the right on all devices */}
-        <div className="relative w-max max-w-full ml-auto shrink-0" ref={menuRef}>
+        {/* Changed mx-auto sm:mx-0 to ml-auto to pull the button cleanly to the right on all devices */}
+        <div
+          className="relative w-max max-w-full ml-auto shrink-0"
+          ref={menuRef}
+        >
           <button
             type="button"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -418,49 +518,69 @@ export default function TravelHistory() {
           )}
         </div>
       </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
-        <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+        {/* Card 1: Total Days Tracked */}
+        <div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-base text-slate-500">Total Records</p>
-              <h2 className="text-4xl font-bold text-slate-900 mt-2">
-                {totalRecordsCount}
+              <p className="text-sm font-medium text-slate-500">Total Days Tracked</p>
+              <h2 className="text-3xl font-bold text-slate-900 mt-2">
+                {calendarHomeDays + calendarAbroadDays}
               </h2>
             </div>
-            <div className="w-14 h-14 rounded-2xl bg-blue-50 flex items-center justify-center">
-              <FiActivity className="text-2xl text-blue-600" />
+            <div className="w-12 h-12 rounded-xl bg-indigo-50 flex items-center justify-center shrink-0">
+              <FiCalendar className="text-xl text-indigo-600" />
             </div>
           </div>
         </div>
 
-        <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm">
+        {/* Card 2: App Automatic Tracking */}
+        <div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-base text-slate-500">Current Footprint</p>
-              <h2 className="text-xl font-bold text-slate-900 mt-2 break-words">
-                {currentFootprintDisplay}
+              <p className="text-sm font-medium text-slate-500">App Tracking Days</p>
+              <h2 className="text-3xl font-bold text-slate-900 mt-2">
+                {appTrackingDaysCount}
               </h2>
             </div>
-            <div className="w-14 h-14 rounded-2xl bg-green-50 flex items-center justify-center">
-              <FiMapPin className="text-2xl text-green-600" />
+            <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
+              <FiActivity className="text-xl text-blue-600" />
+            </div>
+          </div>
+        </div>
+
+        {/* Card 3: Manual Entry Logs */}
+        <div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-slate-500">Manual Entry Days</p>
+              <h2 className="text-3xl font-bold text-slate-900 mt-2">
+                {manualTrackingDaysCount}
+              </h2>
+            </div>
+            <div className="w-12 h-12 rounded-xl bg-purple-50 flex items-center justify-center shrink-0">
+              <FiPlus className="text-xl text-purple-600" />
+            </div>
+          </div>
+        </div>
+
+        {/* Card 4: Base Home Setup Days */}
+        <div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-slate-500">Base Profile Days</p>
+              <h2 className="text-3xl font-bold text-slate-900 mt-2">
+                {baseInitialHomeDaysCount}
+              </h2>
+            </div>
+            <div className="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center shrink-0">
+              <FiMapPin className="text-xl text-emerald-600" />
             </div>
           </div>
         </div>
       </div>
-      {/* {records.length > 0 && (
-        <div className="flex justify-end">
-          <button
-            type="button"
-            onClick={handleExportData}
-            className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-slate-200 text-slate-700 font-bold text-xs uppercase tracking-wider rounded-xl shadow-sm hover:bg-slate-50 active:bg-slate-100 transition cursor-pointer"
-          >
-            <FiDownloadCloud className="text-base text-indigo-600" />
-            Export Excel Report
-          </button>
-        </div>
-      )} */}
-       {records.length > 0 && (
+
+      {records.length > 0 && (
         <div className="flex justify-end sm:justify-end">
           <button
             type="button"

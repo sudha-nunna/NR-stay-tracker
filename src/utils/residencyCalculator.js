@@ -107,21 +107,30 @@ export const calculateResidencyStatus = (travelRecords, profile) => {
     const depStr = record.departureDate.split("T")[0];
     const arrStr = record.arrivalDate.split("T")[0];
 
-    // Explicit date validation protection safeguard (Departure must be before or equal to Arrival)
-    if (isAfter(parseISO(depStr), parseISO(arrStr))) {
-      return;
-    }
-
     if (
       depStr === arrStr &&
       (record.purpose === "Calendar Check-In" ||
         record.purpose === "Calendar Check-Out" ||
-        record.purpose === "Daily GPS Check-In")
+        record.purpose === "Daily GPS Check-In" ||
+        record.purpose === "Country Changed")
     ) {
       overrides.set(depStr, record);
     } else {
-      backgroundSegments.push(record);
+      if (!isAfter(parseISO(depStr), parseISO(arrStr))) {
+        backgroundSegments.push(record);
+      }
     }
+  });
+
+  backgroundSegments.sort((a, b) => {
+    const aDep = a.departureDate.split("T")[0];
+    const aArr = a.arrivalDate.split("T")[0];
+    const bDep = b.departureDate.split("T")[0];
+    const bArr = b.arrivalDate.split("T")[0];
+    const aLen = new Date(aArr) - new Date(aDep);
+    const bLen = new Date(bArr) - new Date(bDep);
+    if (aLen !== bLen) return aLen - bLen;
+    return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
   });
 
   const uniqueHomeDays = new Set();

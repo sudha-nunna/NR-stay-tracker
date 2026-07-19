@@ -16,7 +16,7 @@ import {
   subDays,
   isAfter,
 } from "date-fns";
-import { usePresenceToggle } from "./usePresenceToggle";
+import { usePresenceToggle, getSplittingFlag } from "./usePresenceToggle";
 
 export function useResidencyDashboard() {
   const { user, profile } = useAuth();
@@ -30,7 +30,7 @@ export function useResidencyDashboard() {
 
   const isCreatingInitialHomeStay = useRef(false);
 
-  const { handleTogglePresence } = usePresenceToggle(user, profile, records);
+  const { handleTogglePresence, handleAddTravelRange } = usePresenceToggle(user, profile, records);
 
   const getFullCountryName = (code) => {
     if (!code) return "Unknown Base";
@@ -73,6 +73,12 @@ export function useResidencyDashboard() {
     const unsubscribe = subscribeToTravelRecords(
       user.uid,
       (fetchedRecords) => {
+        console.log("SNAPSHOT RECORDS", fetchedRecords.map(r => ({
+          id: r.recordId,
+          dep: r.departureDate,
+          arr: r.arrivalDate,
+          purpose: r.purpose
+        })));
         setRecords(fetchedRecords);
         setMetricsLoading(false);
       },
@@ -104,15 +110,22 @@ export function useResidencyDashboard() {
 
     const rawHomeCountry =
       profile?.homeCountry || profile?.nativeCountry || "US";
+    const cleanStartDate = fyStart.includes("T") ? fyStart.split("T")[0] : fyStart;
     const initialHomeStayRecord = records.find(
       (r) => r.purpose === "Initial Home Stay",
     );
 
-    if (!initialHomeStayRecord && !isCreatingInitialHomeStay.current && records.length === 0) {
+    const hasCoveringRecord = records.some((r) => {
+      if (!r.departureDate || !r.arrivalDate) return false;
+      const dep = r.departureDate.split("T")[0];
+      const arr = r.arrivalDate.split("T")[0];
+      return dep <= cleanStartDate && arr >= cleanStartDate;
+    });
+
+    if (!initialHomeStayRecord && !isCreatingInitialHomeStay.current && !hasCoveringRecord && !getSplittingFlag() && records.length === 0) {
       isCreatingInitialHomeStay.current = true;
       const today = new Date();
       const yesterdayStr = format(subDays(today, 1), "yyyy-MM-dd");
-      const cleanStartDate = fyStart.includes("T") ? fyStart.split("T")[0] : fyStart;
 
       const isAlreadyListed = records.some(r => r.purpose === "Initial Home Stay");
       if (isAlreadyListed) return;
@@ -330,55 +343,58 @@ export function useResidencyDashboard() {
   const computedDayMap = {};
 
   if (hasValidTravelRecords) {
-    records.forEach((record) => {
+    const sortedRecords = [...records].sort((a, b) => {
+      const aSpan = a.arrivalDate && a.departureDate
+        ? new Date(a.arrivalDate.split("T")[0]) - new Date(a.departureDate.split("T")[0])
+        : 0;
+      const bSpan = b.arrivalDate && b.departureDate
+        ? new Date(b.arrivalDate.split("T")[0]) - new Date(b.departureDate.split("T")[0])
+        : 0;
+      if (aSpan !== bSpan) return aSpan - bSpan;
+      return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+    });
+
+    sortedRecords.forEach((record) => {
       if (!record?.arrivalDate || !record?.departureDate) return;
       if (
         isAfter(parseISO(record.departureDate), parseISO(record.arrivalDate))
       )
         return;
-      if (
+
+      const isSingleDayOverride =
         record.arrivalDate === record.departureDate &&
         (record.purpose === "Calendar Check-In" ||
           record.purpose === "Calendar Check-Out" ||
-          record.purpose === "Daily GPS Check-In")
-      ) {
-        return;
-      }
+          record.purpose === "Daily GPS Check-In" ||
+          record.purpose === "Country Changed");
 
-      const isRecordHome =
-        record.toCountry && record.toCountry.toUpperCase() === homeBase;
-      const days = eachDayOfInterval({
-        start: new Date(record.departureDate + "T00:00:00"),
-        end: new Date(record.arrivalDate + "T00:00:00"),
-      });
+      if (isSingleDayOverride) {
+        const key = record.arrivalDate;
+        const isRecordHome =
+          record.toCountry && record.toCountry.toUpperCase() === homeBase;
 
-      days.forEach((day) => {
-        const key = format(day, "yyyy-MM-dd");
         computedDayMap[key] = {
           status: isRecordHome ? "Home Stay" : "Abroad Stay",
           country: getFullCountryName(record.toCountry),
         };
-      });
-    });
+      } else {
+        const isRecordHome =
+          record.toCountry && record.toCountry.toUpperCase() === homeBase;
+        const days = eachDayOfInterval({
+          start: new Date(record.departureDate + "T00:00:00"),
+          end: new Date(record.arrivalDate + "T00:00:00"),
+        });
 
-    records.forEach((record) => {
-      if (!record?.arrivalDate || !record?.departureDate) return;
-      if (record.arrivalDate !== record.departureDate) return;
-      if (
-        record.purpose !== "Calendar Check-In" &&
-        record.purpose !== "Calendar Check-Out" &&
-        record.purpose !== "Daily GPS Check-In"
-      )
-        return;
-
-      const key = record.arrivalDate;
-      const isRecordHome =
-        record.toCountry && record.toCountry.toUpperCase() === homeBase;
-
-      computedDayMap[key] = {
-        status: isRecordHome ? "Home Stay" : "Abroad Stay",
-        country: getFullCountryName(record.toCountry),
-      };
+        days.forEach((day) => {
+          const key = format(day, "yyyy-MM-dd");
+          if (!computedDayMap[key]) {
+            computedDayMap[key] = {
+              status: isRecordHome ? "Home Stay" : "Abroad Stay",
+              country: getFullCountryName(record.toCountry),
+            };
+          }
+        });
+      }
     });
   }
 
@@ -422,7 +438,13 @@ export function useResidencyDashboard() {
         await updateTravelRecord(editingRecord.recordId, data);
         toast.success("Record updated successfully");
       } else {
-        await addTravelRecord(user.uid, data);
+        await handleAddTravelRange(
+          data.departureDate,
+          data.arrivalDate,
+          data.toCountry,
+          data.fromCountry,
+          data.purpose,
+        );
         toast.success("Travel record added successfully");
       }
 

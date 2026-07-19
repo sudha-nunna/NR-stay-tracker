@@ -104,25 +104,7 @@ const activeAllocatedPercentage = Math.min(
   Math.round((activeDaysLogged / activeLocalThreshold) * 100),
   100,
 );
-  // return (
-  //   <div className="space-y-6 relative z-10 text-left">
-  //     <div className="flex items-center justify-between">
-  //       <div>
-  //         <h1 className="text-3xl font-bold text-slate-900">
-  //           Analytics Dashboard
-  //         </h1>
-  //         <p className="mt-2 text-slate-500">
-  //           Comprehensive travel and residency insights.
-  //         </p>
-  //       </div>
-
-  //       <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-5 py-3 rounded-2xl shadow-lg">
-  //         <p className="text-xs uppercase tracking-wide opacity-80">
-  //           Total Stay Days
-  //         </p>
-  //         <h2 className="text-2xl font-bold">{homeDays + internationalDays}</h2>
-  //       </div>
-  //     </div>
+  
   return (
     <div className="space-y-6 relative z-10 text-left">
       {/* Updated items alignment and gap to prevent overlapping or crushing on small screens */}
@@ -131,7 +113,7 @@ const activeAllocatedPercentage = Math.min(
           <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
             Analytics Dashboard
           </h1>
-          <p className="mt-1 sm:mt-2 text-xs sm:text-sm text-slate-500">
+          <p className="mt-2 text-blue-800">
             Comprehensive travel and residency insights.
           </p>
         </div>
@@ -158,12 +140,6 @@ const activeAllocatedPercentage = Math.min(
           </h2>
         </div>
 
-        {/* <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm">
-          <p className="text-base text-slate-500">Countries Visited</p>
-          <h2 className="text-4xl font-bold text-purple-600 mt-3">
-            {new Set(records.map((r) => r.toCountry).filter(Boolean)).size}
-          </h2>
-        </div> */}
 
         <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm">
           <p className="text-base text-slate-500">Residency Progress</p>
@@ -181,27 +157,29 @@ const activeAllocatedPercentage = Math.min(
       </div>
 
       {/* MULTI-OFFICE SPLIT JOURNEY PLANNER */}
-      <div className="bg-gradient-to-br from-green-100 to-indigo-100 border border-slate-200 rounded-3xl p-6 shadow-sm w-full overflow-hidden">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4 mb-6 w-full flex-wrap sm:flex-nowrap">
-          <div className="flex items-center gap-3 min-w-0 max-w-full">
-            <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
+      {/* MULTI-OFFICE SPLIT JOURNEY PLANNER */}
+      <div className="bg-gradient-to-br from-green-100 to-indigo-100 border border-slate-200 rounded-3xl p-4 sm:p-6 shadow-sm w-full overflow-hidden">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-200/60 pb-4 mb-6 w-full">
+          <div className="flex items-start gap-3 min-w-0 w-full">
+            <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0 mt-0.5">
               <FiGlobe className="text-lg" />
             </div>
-            <div className="min-w-0 break-words">
-              <h3 className="text-base font-bold uppercase tracking-wider text-slate-900 truncate sm:whitespace-normal">
+            <div className="min-w-0 flex-1">
+              <h3 className="text-sm sm:text-base font-bold uppercase tracking-wider text-slate-900 break-words">
                 Multi-Office Split Journey Planner
               </h3>
-              <p className="text-xs text-slate-500 mt-0.5 pattern-safari-fix">
+              <p className="text-xs text-slate-500 mt-1">
                 Live presence allocation tracking across all global operational
                 office bases.
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 self-start sm:self-auto shrink-0 max-w-full">
-            <label className="text-xs font-bold text-slate-600 uppercase tracking-wider whitespace-nowrap">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full lg:w-auto shrink-0">
+            <label className="text-xs font-bold text-slate-600 uppercase tracking-wider block sm:inline">
               Select Country:
             </label>
+            
             <select
               value={targetDropdownSelectionCode}
               onChange={(e) => setSelectedCountryCode(e.target.value)}

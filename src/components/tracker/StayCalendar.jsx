@@ -30,6 +30,12 @@ export default function StayCalendar({
   fyEnd,
   travelRecords = [],
 }) {
+  console.log("CALENDAR RECORDS", travelRecords.map(r => ({
+    id: r.recordId,
+    dep: r.departureDate,
+    arr: r.arrivalDate,
+    purpose: r.purpose
+  })));
   const [currentViewDate, setCurrentViewDate] = useState(new Date());
   
   // Custom Dropdown Open States & Component Refs
@@ -295,13 +301,47 @@ export default function StayCalendar({
 
               let backgroundRangeMatch = null;
               if (!explicitMapEntry && Array.isArray(travelRecords)) {
-                backgroundRangeMatch = travelRecords.find((record) => {
+                const sortedRecords = [...travelRecords].sort((a, b) => {
+                  const purposePriority = (p) => {
+                    if (p === "Country Changed") return 0;
+                    if (p === "Daily GPS Check-In") return 1;
+                    if (p === "Calendar Check-In" || p === "Calendar Check-Out") return 2;
+                    return 3;
+                  };
+                  const pDiff = purposePriority(a.purpose) - purposePriority(b.purpose);
+                  if (pDiff !== 0) return pDiff;
+                  const aLen =
+                    new Date(a.arrivalDate.split("T")[0]) -
+                    new Date(a.departureDate.split("T")[0]);
+                  const bLen =
+                    new Date(b.arrivalDate.split("T")[0]) -
+                    new Date(b.departureDate.split("T")[0]);
+                  if (aLen !== bLen) return aLen - bLen;
+                  return (
+                    new Date(b.arrivalDate.split("T")[0]) -
+                    new Date(a.arrivalDate.split("T")[0])
+                  );
+                });
+                backgroundRangeMatch = sortedRecords.find((record) => {
                   if (!record.departureDate || !record.arrivalDate)
                     return false;
                   try {
-                    const start = parseISO(record.departureDate.split("T")[0]);
-                    const end = parseISO(record.arrivalDate.split("T")[0]);
-                    return isWithinInterval(day, { start, end });
+                    const start = new Date(
+                      record.departureDate.split("T")[0] + "T00:00:00",
+                    );
+                    const end = new Date(
+                      record.arrivalDate.split("T")[0] + "T23:59:59",
+                    );
+                    const matches = isWithinInterval(day, { start, end });
+                    if (matches) {
+                      console.log("CALENDAR MATCHED RECORD", dateStr, {
+                        id: record.recordId,
+                        dep: record.departureDate,
+                        arr: record.arrivalDate,
+                        purpose: record.purpose,
+                      });
+                    }
+                    return matches;
                   } catch (e) {
                     return false;
                   }

@@ -213,7 +213,8 @@ const initialEndParts = splitMonthDay(
         </p>
       </div>
 
-      <div className="bg-white border border-slate-200 shadow-xl rounded-3xl p-6">
+      {/* <div className="bg-white border border-slate-200 shadow-xl rounded-3xl p-6"> */}
+      <div className="bg-white border border-slate-200 shadow-xl rounded-2xl md:rounded-3xl p-4 md:p-6">
         <form onSubmit={handleSubmit(onUpdate)} className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Country Selection Dropdown Panel */}
           <div className="relative" ref={countryRef}>
@@ -348,10 +349,16 @@ const initialEndParts = splitMonthDay(
             </label>
             <div className="grid grid-cols-2 gap-2 w-full">
               {/* Custom Start Month Selector */}
-              <div className="relative w-full" ref={startMonthRef}>
+              {/* <div className="relative w-full" ref={startMonthRef}>
                 <div
                   onClick={() => setStartMonthOpen(!startMonthOpen)}
                   className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-sm flex items-center justify-between cursor-pointer"
+                > */}
+              {/* Custom Start Month Selector */}
+              <div className="relative w-full" ref={startMonthRef}>
+                <div
+                  onClick={() => setStartMonthOpen(!startMonthOpen)}
+                  className="w-full px-2 md:px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-sm flex items-center justify-between cursor-pointer"
                 >
                   <span className="truncate">
                     {GLOBAL_MONTHS.find((m) => m.value === startMonth)?.label || "Month (Not Set)"}
@@ -380,10 +387,16 @@ const initialEndParts = splitMonthDay(
               </div>
 
               {/* Custom Start Day Selector */}
-              <div className="relative w-full" ref={startDayRef}>
+              {/* <div className="relative w-full" ref={startDayRef}>
                 <div
                   onClick={() => setStartDayOpen(!startDayOpen)}
                   className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-sm flex items-center justify-between cursor-pointer"
+                > */}
+              {/* Custom Start Day Selector */}
+              <div className="relative w-full" ref={startDayRef}>
+                <div
+                  onClick={() => setStartDayOpen(!startDayOpen)}
+                  className="w-full px-2 md:px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-sm flex items-center justify-between cursor-pointer"
                 >
                   <span className="truncate">{startDay || "Day (Not Set)"}</span>
                   <FiChevronDown className="text-slate-400 shrink-0" />
@@ -419,10 +432,16 @@ const initialEndParts = splitMonthDay(
             </label>
             <div className="grid grid-cols-2 gap-2 w-full">
               {/* Custom End Month Selector */}
-              <div className="relative w-full" ref={endMonthRef}>
+              {/* <div className="relative w-full" ref={endMonthRef}>
                 <div
                   onClick={() => setEndMonthOpen(!endMonthOpen)}
                   className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-sm flex items-center justify-between cursor-pointer"
+                > */}
+                {/* Custom End Month Selector */}
+              <div className="relative w-full" ref={endMonthRef}>
+                <div
+                  onClick={() => setEndMonthOpen(!endMonthOpen)}
+                  className="w-full px-2 md:px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-sm flex items-center justify-between cursor-pointer"
                 >
                   <span className="truncate">
                     {GLOBAL_MONTHS.find((m) => m.value === endMonth)?.label || "Month (Not Set)"}
@@ -451,10 +470,16 @@ const initialEndParts = splitMonthDay(
               </div>
 
               {/* Custom End Day Selector */}
-              <div className="relative w-full" ref={endDayRef}>
+              {/* <div className="relative w-full" ref={endDayRef}>
                 <div
                   onClick={() => setEndDayOpen(!endDayOpen)}
                   className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-sm flex items-center justify-between cursor-pointer"
+                > */}
+              {/* Custom End Day Selector */}
+              <div className="relative w-full" ref={endDayRef}>
+                <div
+                  onClick={() => setEndDayOpen(!endDayOpen)}
+                  className="w-full px-2 md:px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-sm flex items-center justify-between cursor-pointer"
                 >
                   <span className="truncate">{endDay || "Day (Not Set)"}</span>
                   <FiChevronDown className="text-slate-400 shrink-0" />

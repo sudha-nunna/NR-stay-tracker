@@ -4,8 +4,9 @@ import { FiGrid, FiActivity, FiMap, FiPieChart, FiUser } from "react-icons/fi";
 export default function BottomNav() {
   const menuItems = [
     { path: "/", label: "Dashboard", icon: FiGrid, end: true },
+     { path: "/travel-history", label: "History", icon: FiActivity },
     { path: "/trips-overview", label: "Trips", icon: FiMap },
-    { path: "/travel-history", label: "History", icon: FiActivity },
+   
     { path: "/analytics", label: "Analytics", icon: FiPieChart },
     { path: "/profile", label: "Profile", icon: FiUser },
   ];

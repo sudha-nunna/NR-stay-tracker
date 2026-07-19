@@ -128,14 +128,21 @@ export default function TravelForm({
       );
       return;
     }
-
     const newStart = new Date(data.departureDate + "T00:00:00");
     const newEnd = new Date(data.arrivalDate + "T00:00:00");
+
+    // Auto-maintained baseline "Home" filler records are meant to be
+    // split automatically whenever a real trip is added on top of them —
+    // so they must never trigger a duplicate/overlap block.
+    const isAutoBaselineRecord = (record) =>
+      record.purpose === "Initial Home Stay" ||
+      record.purpose === "Automated System Entry";
 
     // Exact duplicate check (same departure and arrival)
     const isExactDuplicate = travelRecords.some((record) => {
       if (initialData && record.recordId === initialData.recordId) return false;
       if (!record.departureDate || !record.arrivalDate) return false;
+      if (isAutoBaselineRecord(record)) return false;
       return (
         record.departureDate === data.departureDate &&
         record.arrivalDate === data.arrivalDate
@@ -153,6 +160,7 @@ export default function TravelForm({
     const isOverlapping = travelRecords.some((record) => {
       if (initialData && record.recordId === initialData.recordId) return false;
       if (!record.departureDate || !record.arrivalDate) return false;
+      if (isAutoBaselineRecord(record)) return false;
 
       const existStart = new Date(record.departureDate + "T00:00:00");
       const existEnd = new Date(record.arrivalDate + "T00:00:00");
@@ -166,8 +174,46 @@ export default function TravelForm({
       );
       return;
     }
+    // const newStart = new Date(data.departureDate + "T00:00:00");
+    // const newEnd = new Date(data.arrivalDate + "T00:00:00");
+
+    // // Exact duplicate check (same departure and arrival)
+    // const isExactDuplicate = travelRecords.some((record) => {
+    //   if (initialData && record.recordId === initialData.recordId) return false;
+    //   if (!record.departureDate || !record.arrivalDate) return false;
+    //   return (
+    //     record.departureDate === data.departureDate &&
+    //     record.arrivalDate === data.arrivalDate
+    //   );
+    // });
+
+    // if (isExactDuplicate) {
+    //   toast.error(
+    //     "A travel record already exists for these dates,if you want to change data can edit in histrory table.",
+    //   );
+    //   return;
+    // }
+
+    // // Existing overlapping check
+    // const isOverlapping = travelRecords.some((record) => {
+    //   if (initialData && record.recordId === initialData.recordId) return false;
+    //   if (!record.departureDate || !record.arrivalDate) return false;
+
+    //   const existStart = new Date(record.departureDate + "T00:00:00");
+    //   const existEnd = new Date(record.arrivalDate + "T00:00:00");
+
+    //   return newStart <= existEnd && newEnd >= existStart;
+    // });
+
+    // if (isOverlapping) {
+    //   toast.error(
+    //     "A travel record already exists within the selected date range.",
+    //   );
+    //   return;
+    // }
 
     await onSubmit(data);
+    
   };
 
   const handleDatePickerClick = (inputName) => {

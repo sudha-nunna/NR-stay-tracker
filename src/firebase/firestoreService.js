@@ -9,6 +9,7 @@ import {
   where,
   onSnapshot,
   getDocs,
+  getDoc,
 } from "firebase/firestore";
 
 /**
@@ -70,7 +71,15 @@ export const addTravelRecord = async (uid, record) => {
     return { id: existingSnapshot.docs[0].id };
   }
 
-  return await addDoc(colRef, {
+  console.log("CREATE TRAVEL RECORD", {
+    departureDate: normDeparture,
+    arrivalDate: normArrival,
+    fromCountry: record.fromCountry,
+    toCountry: record.toCountry,
+    purpose: record.purpose || "",
+  });
+
+  const created = await addDoc(colRef, {
     uid,
     fromCountry: record.fromCountry,
     toCountry: record.toCountry,
@@ -81,6 +90,9 @@ export const addTravelRecord = async (uid, record) => {
     longitude: record.longitude !== undefined ? record.longitude : null,
     createdAt: new Date().toISOString(),
   });
+
+  console.log("CREATE SUCCESS", created.id);
+  return created;
 };
 
 /**
@@ -112,8 +124,15 @@ export const updateTravelRecord = async (recordId, updatedData) => {
  * Deletes a targeted travel record from the database.
  */
 export const deleteTravelRecord = async (recordId) => {
+  if (!recordId) {
+    console.error("DELETE PARENT skipped - missing recordId");
+    throw new Error("Cannot delete travel record without recordId");
+  }
+  console.log("DELETE PARENT", recordId);
   const docRef = doc(db, "travelRecords", recordId);
-  return await deleteDoc(docRef);
+  await deleteDoc(docRef);
+  console.log("DELETE SUCCESS", recordId);
+  return recordId;
 };
 
 /**
@@ -130,10 +149,10 @@ export const subscribeToTravelRecords = (uid, onUpdate, onError) => {
       const records = [];
       snapshot.forEach((doc) => {
         const data = doc.data();
-        // Normalize dates to YYYY-MM-DD format to ensure consistency across all records
+        const docId = doc.id;
         records.push({
-          recordId: doc.id,
           ...data,
+          recordId: docId,
           departureDate: data.departureDate?.includes("T")
             ? data.departureDate.split("T")[0]
             : data.departureDate,
@@ -141,6 +160,9 @@ export const subscribeToTravelRecords = (uid, onUpdate, onError) => {
             ? data.arrivalDate.split("T")[0]
             : data.arrivalDate,
         });
+        if (data.recordId && data.recordId !== docId) {
+          console.warn("RECORD ID MISMATCH", { docId, storedRecordId: data.recordId });
+        }
       });
 
       records.sort(

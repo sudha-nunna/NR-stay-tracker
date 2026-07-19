@@ -91,9 +91,6 @@ export default function TripsOverview() {
           <h2 className="text-xl font-semibold text-slate-900">
             Travel Summary
           </h2>
-          <span className="bg-slate-100 text-slate-700 px-3 py-1 rounded-full text-sm font-medium">
-            {records.length} Logs
-          </span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -174,8 +171,8 @@ export default function TripsOverview() {
           ></div>
         </div>
         <div className="flex justify-between items-center mt-3 text-xs text-slate-500 font-semibold">
-          <span>Current Presence Stays: {displayOutsideDays} days</span>
-          <span>Configured Milestone: {definedMilestone} days</span>
+          <span>Current Stays: {displayOutsideDays} days</span>
+          <span>Target Milestone: {definedMilestone} days</span>
         </div>
       </div>
 

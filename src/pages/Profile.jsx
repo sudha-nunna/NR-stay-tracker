@@ -794,8 +794,8 @@ export default function Profile() {
   ];
 
   return (
-    // FIX: Removed px-4/px-3 and md:px-6 to match full sidebar screen layout edge alignment cleanly
-    <div className="max-w-5xl mx-auto space-y-3 relative z-10 text-left w-full h-[calc(100dvh-140px)] overflow-y-auto overflow-x-hidden overscroll-contain">
+    // Added padding-bottom (pb-24) for mobile devices so the save button is completely visible above the tab bar
+    <div className="max-w-5xl mx-auto space-y-3 relative z-10 text-left w-full h-[calc(100dvh-140px)] overflow-y-auto overflow-x-hidden overscroll-contain pb-24 sm:pb-6">
       
       {/* Universal Wrapper Card Block */}
       <div className="bg-white border border-slate-200 rounded-3xl p-4 sm:p-5 shadow-sm space-y-4">
@@ -804,7 +804,7 @@ export default function Profile() {
         <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 rounded-2xl p-4 sm:p-5 shadow-md text-white">
           <h1 className="text-xl font-bold">Profile Summary</h1>
           <p className="text-indigo-100 mt-0.5 text-xs sm:text-sm max-w-2xl opacity-90">
-            Overview of your current core settings, tracking horizons, and active global footprint metrics.
+            Update your country, financial year, and residency preferences.
           </p>
         </div>
 

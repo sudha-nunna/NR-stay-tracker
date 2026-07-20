@@ -804,7 +804,7 @@ export default function Profile() {
         <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 rounded-2xl p-4 sm:p-5 shadow-md text-white">
           <h1 className="text-xl font-bold">Profile Summary</h1>
           <p className="text-indigo-100 mt-0.5 text-xs sm:text-sm max-w-2xl opacity-90">
-            Update your country, financial year, and residency preferences.
+            Set custom residency metrics and date parameters instantly.
           </p>
         </div>
 
@@ -843,7 +843,7 @@ export default function Profile() {
             </div>
             <div>
               <h2 className="text-base font-bold text-slate-900">Update Profile Settings</h2>
-              <p className="text-xs text-slate-500">Modify your native parameter thresholds and parameters below.</p>
+              <p className="text-xs text-slate-500"> Update your country, financial year, and residency preferences.</p>
             </div>
           </div>
           

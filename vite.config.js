@@ -19,6 +19,17 @@ export default defineConfig({
 
       includeAssets: ["logo.png", "apple-touch-icon.png"],
 
+      // manifest: {
+      //   name: "Global Residency Tracker",
+      //   short_name: "GRT",
+
+      //   description: "Track travel history and residency status worldwide.",
+
+      //   theme_color: "#4f46e5",
+      //   background_color: "#ffffff",
+
+      //   display: "standalone",
+      //   display_override: ["fullscreen", "standalone"],
       manifest: {
         name: "Global Residency Tracker",
         short_name: "GRT",
@@ -30,6 +41,9 @@ export default defineConfig({
 
         display: "standalone",
         display_override: ["fullscreen", "standalone"],
+        // Added explicit background color attributes to correctly render transparent images nicely without rendering defaults as dark layouts
+        background_color: "#ffffff",
+        theme_color: "#4f46e5",
         orientation: "portrait",
         start_url: "/",
         scope: "/",
@@ -39,19 +53,15 @@ export default defineConfig({
             src: "pwa-192x192.png",
             sizes: "192x192",
             type: "image/png",
-            purpose: "any",
+            // Set to "any maskable" so the engine handles resolution boundaries and spacing layout correctly
+            purpose: "any maskable",
           },
           {
             src: "pwa-512x512.png",
             sizes: "512x512",
             type: "image/png",
-            purpose: "any",
-          },
-          {
-            src: "pwa-512x512.png",
-            sizes: "512x512",
-            type: "image/png",
-            purpose: "maskable",
+            // Set to "any maskable" to match layout scaling rules uniformly
+            purpose: "any maskable",
           },
         ],
       },

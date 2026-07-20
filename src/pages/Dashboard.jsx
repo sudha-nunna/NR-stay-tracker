@@ -103,21 +103,25 @@ export default function Dashboard() {
       </div>
     );
   }
+const loggedTrips = records.filter(
+  (r) =>
+    r.purpose === "Daily GPS Check-In" ||
+    r.purpose === "Country Changed"
+);
+// const loggedTrips = records.filter((r) => {
+//   // Exclude initial setup markers that aren't actual trips
+//   if (r.purpose === "Initial Home Stay") return false;
 
-const loggedTrips = records.filter((r) => {
-  // Exclude initial setup markers that aren't actual trips
-  if (r.purpose === "Initial Home Stay") return false;
+//   // Include if it's a valid travel log targeting a real outside country,
+//   // but explicitly exclude the text placeholder "ABROAD"
+//   // if (r.toCountry === "ABROAD") return false;
 
-  // Include if it's a valid travel log targeting a real outside country,
-  // but explicitly exclude the text placeholder "ABROAD"
-  if (r.toCountry === "ABROAD") return false;
+//   // Explicitly allow Daily Check-ins to pass through the filter
+//   if (r.purpose === "Daily GPS Check-In" || r.purpose === "Country Changed") return true;
 
-  // Explicitly allow Daily Check-ins to pass through the filter
-  if (r.purpose === "Daily GPS Check-In" || r.purpose === "Country Changed") return true;
-
-  // Include if it's a valid travel log targeting an outside country
-  return r.toCountry && r.toCountry !== profile?.homeCountry;
-});
+//   // Include if it's a valid travel log targeting an outside country
+//   return r.toCountry && r.toCountry !== profile?.homeCountry;
+// });
   const recentTrips = [...loggedTrips]
     .sort(
       (a, b) => new Date(b.departureDate || 0) - new Date(a.departureDate || 0),

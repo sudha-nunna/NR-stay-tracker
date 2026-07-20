@@ -1,3 +1,545 @@
+// import { useForm } from "react-hook-form";
+// import { useEffect } from "react";
+// import { useAuth } from "../context/AuthContext";
+// import { updateUserProfileInDb } from "../firebase/firestoreService";
+// import { countries } from "../utils/countries";
+// import { timezones, getTimezoneByCountry } from "../utils/timezoneList";
+// import {
+//   GLOBAL_MONTHS,
+//   getDaysInMonth,
+//   splitMonthDay,
+//   FINANCIAL_YEARS_BY_COUNTRY, // Imported to sync fiscal dates on select
+// } from "../utils/dateHelpers";
+// import toast from "react-hot-toast";
+// import { FiSave, FiSearch, FiChevronDown } from "react-icons/fi";
+// import { BiLoaderAlt } from "react-icons/bi";
+// import { useState, useRef } from "react";
+
+// export default function Profile() {
+//   const { user, profile } = useAuth();
+//   const [saving, setSaving] = useState(false);
+
+//   // Searchable Dropdown States
+//   const [countryDropdownOpen, setCountryDropdownOpen] = useState(false);
+//   const [countrySearchQuery, setCountrySearchQuery] = useState("");
+//   const [timezoneDropdownOpen, setTimezoneDropdownOpen] = useState(false);
+//   const [timezoneSearchQuery, setTimezoneSearchQuery] = useState("");
+
+//   const countryRef = useRef(null);
+//   const timezoneRef = useRef(null);
+//   // Custom Dropdown Open States for Month & Day Pickers
+//   const [startMonthOpen, setStartMonthOpen] = useState(false);
+//   const [startDayOpen, setStartDayOpen] = useState(false);
+//   const [endMonthOpen, setEndMonthOpen] = useState(false);
+//   const [endDayOpen, setEndDayOpen] = useState(false);
+
+//   const startMonthRef = useRef(null);
+//   const startDayRef = useRef(null);
+//   const endMonthRef = useRef(null);
+//   const endDayRef = useRef(null);
+
+//   // Extract initial values using shared date utility logic safely checking raw strings first
+// const getCleanDateString = (val) => {
+//   if (!val) return "";
+//   return val.includes("T") ? val.split("T")[0] : val;
+// };
+
+// const rawStart = profile?.fyStart || profile?.residencyPeriodStart;
+// const cleanStart = getCleanDateString(rawStart);
+// // If it contains a full year prefix (length of split array is 3), extract month-day from indices 1 and 2
+// const startPartsArray = cleanStart ? cleanStart.split("-") : [];
+// const initialStartParts = splitMonthDay(
+//   startPartsArray.length === 3 ? `${startPartsArray[1]}-${startPartsArray[2]}` : cleanStart
+// );
+
+// const rawEnd = profile?.fyEnd || profile?.residencyPeriodEnd;
+// const cleanEnd = getCleanDateString(rawEnd);
+// const endPartsArray = cleanEnd ? cleanEnd.split("-") : [];
+// const initialEndParts = splitMonthDay(
+//   endPartsArray.length === 3 ? `${endPartsArray[1]}-${endPartsArray[2]}` : cleanEnd
+// );
+//   // Dynamic dropdown selector states
+//   const [startMonth, setStartMonth] = useState(initialStartParts.month);
+//   const [startDay, setStartDay] = useState(initialStartParts.day);
+//   const [endMonth, setEndMonth] = useState(initialEndParts.month);
+//   const [endDay, setEndDay] = useState(initialEndParts.day);
+
+//   const {
+//     register,
+//     handleSubmit,
+//     watch,
+//     setValue,
+//     formState: { errors, isDirty },
+//   } = useForm({
+//     defaultValues: {
+//       timezone: profile?.timezone || "",
+//       nativeCountry: profile?.nativeCountry || profile?.homeCountry || "",
+//       fyStart: profile?.fyStart || profile?.residencyPeriodStart || "",
+//       fyEnd: profile?.fyEnd || profile?.residencyPeriodEnd || "",
+//       residencyThreshold: profile?.residencyThreshold || "",
+//     },
+//   });
+
+//   useEffect(() => {
+//     window.scrollTo(0, 0);
+//   }, []);
+
+//   // Sync state changes gracefully whenever context signals updates
+//   useEffect(() => {
+//     if (profile) {
+//       setValue(
+//         "nativeCountry",
+//         profile.nativeCountry || profile.homeCountry || "",
+//       );
+//       setValue("timezone", profile.timezone || "");
+//       setValue("residencyThreshold", profile.residencyThreshold || "");
+
+//       const rawS = profile.fyStart || profile.residencyPeriodStart;
+//       const cleanS = getCleanDateString(rawS);
+//       const sArr = cleanS ? cleanS.split("-") : [];
+//       const sParts = splitMonthDay(sArr.length === 3 ? `${sArr[1]}-${sArr[2]}` : cleanS);
+
+//       const rawE = profile.fyEnd || profile.residencyPeriodEnd;
+//       const cleanE = getCleanDateString(rawE);
+//       const eArr = cleanE ? cleanE.split("-") : [];
+//       const eParts = splitMonthDay(eArr.length === 3 ? `${eArr[1]}-${eArr[2]}` : cleanE);
+
+//       setStartMonth(sParts.month);
+//       setStartDay(sParts.day);
+//       setEndMonth(eParts.month);
+//       setEndDay(eParts.day);
+//     }
+//   }, [profile, setValue]);
+
+//   // Handle field serialization targets dynamically for React Hook Form tracking
+//   useEffect(() => {
+//     if (startMonth && startDay) {
+//       setValue("fyStart", `${startMonth}-${startDay}`, { shouldDirty: true });
+//     } else {
+//       setValue("fyStart", "");
+//     }
+//   }, [startMonth, startDay, setValue]);
+
+//   useEffect(() => {
+//     if (endMonth && endDay) {
+//       setValue("fyEnd", `${endMonth}-${endDay}`, { shouldDirty: true });
+//     } else {
+//       setValue("fyEnd", "");
+//     }
+//   }, [endMonth, endDay, setValue]);
+
+//   const selectedCountryCode = watch("nativeCountry");
+//   const selectedTimezoneValue = watch("timezone");
+
+//   useEffect(() => {
+//     function handleClickOutside(event) {
+//       if (countryRef.current && !countryRef.current.contains(event.target))
+//         setCountryDropdownOpen(false);
+//       if (timezoneRef.current && !timezoneRef.current.contains(event.target))
+//         setTimezoneDropdownOpen(false);
+//       if (startMonthRef.current && !startMonthRef.current.contains(event.target))
+//         setStartMonthOpen(false);
+//       if (startDayRef.current && !startDayRef.current.contains(event.target))
+//         setStartDayOpen(false);
+//       if (endMonthRef.current && !endMonthRef.current.contains(event.target))
+//         setEndMonthOpen(false);
+//       if (endDayRef.current && !endDayRef.current.contains(event.target))
+//         setEndDayOpen(false);
+//     }
+//     document.addEventListener("mousedown", handleClickOutside);
+//     return () => document.removeEventListener("mousedown", handleClickOutside);
+//   }, []);
+
+//   const filteredCountries = countries.filter(
+//     (c) =>
+//       c.name.toLowerCase().includes(countrySearchQuery.toLowerCase().trim()) ||
+//       c.code.toLowerCase().includes(countrySearchQuery.toLowerCase().trim()),
+//   );
+
+//   const filteredTimezones = timezones.filter(
+//     (t) =>
+//       t.label
+//         .toLowerCase()
+//         .includes(timezoneSearchQuery.toLowerCase().trim()) ||
+//       t.value.toLowerCase().includes(timezoneSearchQuery.toLowerCase().trim()),
+//   );
+
+//   const currentCountryName =
+//     countries.find((c) => c.code === selectedCountryCode)?.name ||
+//     (profile?.nativeCountry || profile?.homeCountry
+//       ? selectedCountryCode
+//       : "Not Set");
+//   const currentTimezoneLabel =
+//     timezones.find((t) => t.value === selectedTimezoneValue)?.label ||
+//     (profile?.timezone ? selectedTimezoneValue : "Not Set");
+
+//  const onUpdate = async (formData) => {
+//   setSaving(true);
+//   const currentYear = new Date().getFullYear();
+//   const calculatedEndYear = Number(endMonth) < Number(startMonth) ? currentYear + 1 : currentYear;
+
+//   try {
+//     // Build full YYYY-MM-DD strings for both the period and fiscal fields uniformly
+//     const fullPeriodStart = formData.fyStart ? `${currentYear}-${formData.fyStart}` : "not-set";
+//     const fullPeriodEnd = formData.fyEnd ? `${calculatedEndYear}-${formData.fyEnd}` : "not-set";
+
+//     const payload = {
+//       nativeCountry: formData.nativeCountry || "not-set",
+//       homeCountry: formData.nativeCountry || "not-set",
+//       timezone: formData.timezone || "not-set",
+//       residencyThreshold: formData.residencyThreshold
+//         ? Number(formData.residencyThreshold)
+//         : "not-set",
+//       fyStart: fullPeriodStart,
+//       residencyPeriodStart: fullPeriodStart,
+//       fyEnd: fullPeriodEnd,
+//       residencyPeriodEnd: fullPeriodEnd,
+//     };
+//     await updateUserProfileInDb(user.uid, payload);
+//       toast.success("Profile saved successfully.");
+//     } catch (e) {
+//       toast.error("Could not save changes.");
+//     } finally {
+//       setSaving(false);
+//     }
+//   };
+
+//   // return (
+//   //   <div className="max-w-5xl mx-auto space-y-3 relative z-10 px-3 md:px-6 pb-1 text-left w-full overflow-hidden">
+//   // NEW CODE
+//  // NEW CODE
+//  // NEW CODE (Replace with this)
+// return (
+//     <div className="max-w-5xl mx-auto space-y-3 relative z-10 px-3 mt-3 md:px-6 text-left w-full h-[calc(100dvh-140px)] overflow-y-auto overflow-x-hidden overscroll-contain">
+  
+//   <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 rounded-2xl p-4 md:p-6 shadow-xl">
+//         <h1 className="text-xl md:text-3xl font-bold text-white">Profile Settings</h1>
+//         <p className="text-indigo-100 mt-0.5 text-xs md:text-base max-w-2xl">
+//           Set custom residency metrics and date parameters instantly.
+//         </p>
+//       </div>
+
+//       {/* <div className="bg-white border border-slate-200 shadow-xl rounded-3xl p-6"> */}
+//       {/* <div className="bg-white border border-slate-200 shadow-xl rounded-2xl md:rounded-3xl p-4 md:p-6"> */}
+     
+//      {/* <div className="bg-white border border-slate-200 shadow-xl rounded-2xl md:rounded-3xl p-4 md:p-6">
+//         <form onSubmit={handleSubmit(onUpdate)} className="grid grid-cols-1 md:grid-cols-2 gap-4"> */}
+
+//       <div className="bg-white border border-slate-200 shadow-xl rounded-2xl md:rounded-3xl p-3 md:p-6 overflow-hidden">
+//         <form onSubmit={handleSubmit(onUpdate)} className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-full">
+//           {/* Country Selection Dropdown Panel */}
+//           <div className="relative" ref={countryRef}>
+//             <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-2">
+//               Native Country
+//             </label>
+//             <div
+//               onClick={() => setCountryDropdownOpen(!countryDropdownOpen)}
+//               className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between cursor-pointer"
+//             >
+//               <span className="truncate">{currentCountryName}</span>
+//               <FiChevronDown />
+//             </div>
+//             {countryDropdownOpen && (
+//               <div className="absolute z-50 left-0 right-0 mt-1 bg-white rounded-xl border border-slate-200 shadow-xl overflow-hidden">
+//                 <div className="flex items-center gap-2 p-3 border-b bg-slate-50">
+//                   <FiSearch className="text-slate-400" />
+//                   <input
+//                     type="text"
+//                     placeholder="Search Country..."
+//                     value={countrySearchQuery}
+//                     onChange={(e) => setCountrySearchQuery(e.target.value)}
+//                     className="w-full outline-none text-base bg-transparent text-slate-900"
+//                   />
+//                 </div>
+//                 <div className="max-h-48 overflow-y-auto">
+//                   {filteredCountries.map((country) => (
+//                     <div
+//                       key={country.code}
+//                       onClick={() => {
+//                         setValue("nativeCountry", country.code, {
+//                           shouldDirty: true,
+//                         });
+
+//                         const detectedTimezone = getTimezoneByCountry(
+//                           country.code,
+//                         );
+
+//                         if (detectedTimezone) {
+//                           setValue("timezone", detectedTimezone, {
+//                             shouldDirty: true,
+//                           });
+//                         }
+
+//                         // Auto-select financial period start and end dates based on picked country mapping rules
+//                         const fyDates = FINANCIAL_YEARS_BY_COUNTRY?.[country.code.toUpperCase()] || 
+//                                         FINANCIAL_YEARS_BY_COUNTRY?.["DEFAULT"] || 
+//                                         { startMonth: "01", startDay: "01", endMonth: "12", endDay: "31" };
+                        
+//                         setStartMonth(fyDates.startMonth);
+//                         setStartDay(fyDates.startDay);
+//                         setEndMonth(fyDates.endMonth);
+//                         setEndDay(fyDates.endDay);
+
+//                         setCountryDropdownOpen(false);
+//                         setCountrySearchQuery("");
+
+//                         setTimezoneDropdownOpen(false);
+//                         setTimezoneSearchQuery("");
+//                       }}
+//                       className="px-4 py-2.5 hover:bg-slate-50 text-base cursor-pointer"
+//                     >
+//                       {country.name}
+//                     </div>
+//                   ))}
+//                 </div>
+//               </div>
+//             )}
+//             <input type="hidden" {...register("nativeCountry")} />
+//           </div>
+
+//           {/* Timezone Selection Dropdown Panel */}
+//           <div className="relative" ref={timezoneRef}>
+//             <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-2">
+//               Target Timezone Context
+//             </label>
+//             <div
+//               onClick={() => setTimezoneDropdownOpen(!timezoneDropdownOpen)}
+//               className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between cursor-pointer"
+//             >
+//               <span className="truncate">{currentTimezoneLabel}</span>
+//               <FiChevronDown />
+//             </div>
+//             {timezoneDropdownOpen && (
+//               <div className="absolute z-50 left-0 right-0 mt-2 bg-white rounded-xl border border-slate-200 shadow-xl overflow-hidden">
+//                 <div className="flex items-center gap-2 p-3 border-b bg-slate-50">
+//                   <FiSearch className="text-slate-400" />
+//                   <input
+//                     type="text"
+//                     placeholder="Search Timezone..."
+//                     value={timezoneSearchQuery}
+//                     onChange={(e) => setTimezoneSearchQuery(e.target.value)}
+//                     className="w-full outline-none text-base bg-transparent text-slate-900"
+//                   />
+//                 </div>
+//                 <div className="max-h-48 overflow-y-auto">
+//                   {filteredTimezones.map((tz) => (
+//                     <div
+//                       key={tz.value}
+//                       onClick={() => {
+//                         setValue("timezone", tz.value, { shouldDirty: true });
+//                         setTimezoneDropdownOpen(false);
+//                       }}
+//                       className="px-4 py-2.5 hover:bg-slate-50 text-base cursor-pointer"
+//                     >
+//                       {tz.label}
+//                     </div>
+//                   ))}
+//                 </div>
+//               </div>
+//             )}
+//             <input type="hidden" {...register("timezone")} />
+//           </div>
+
+//           {/* Threshold Days Field */}
+//           <div>
+//             <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-2">
+//               Residency Threshold (Days)
+//             </label>
+//             <input
+//               type="number"
+//               placeholder="Not Set"
+//               {...register("residencyThreshold", { min: 1, max: 365 })}
+//               className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-base"
+//             />
+//           </div>
+
+// {/* Financial Year Start Selectors Group */}
+//           <div>
+//             <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-2">
+//               Financial Year Start
+//             </label>
+//             <div className="grid grid-cols-2 gap-2 w-full">
+//               {/* Custom Start Month Selector */}
+//               {/* <div className="relative w-full" ref={startMonthRef}>
+//                 <div
+//                   onClick={() => setStartMonthOpen(!startMonthOpen)}
+//                   className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-sm flex items-center justify-between cursor-pointer"
+//                 > */}
+//               {/* Custom Start Month Selector */}
+//               <div className="relative w-full" ref={startMonthRef}>
+//                 <div
+//                   onClick={() => setStartMonthOpen(!startMonthOpen)}
+//                   className="w-full px-2 md:px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-sm flex items-center justify-between cursor-pointer"
+//                 >
+//                   <span className="truncate">
+//                     {GLOBAL_MONTHS.find((m) => m.value === startMonth)?.label || "Month (Not Set)"}
+//                   </span>
+//                   <FiChevronDown className="text-slate-400 shrink-0" />
+//                 </div>
+//                 {startMonthOpen && (
+//                   <div className="absolute z-50 left-0 right-0 bottom-full mb-1 bg-white border border-slate-200 rounded-lg shadow-xl max-h-48 overflow-y-auto">
+//                     <div
+//                       onClick={() => { setStartMonth(""); setStartMonthOpen(false); }}
+//                       className="px-3 py-2 text-sm hover:bg-slate-50 text-slate-400 italic cursor-pointer"
+//                     >
+//                       Month (Not Set)
+//                     </div>
+//                     {GLOBAL_MONTHS.map((m) => (
+//                       <div
+//                         key={m.value}
+//                         onClick={() => { setStartMonth(m.value); setStartMonthOpen(false); }}
+//                         className={`px-3 py-2 text-sm hover:bg-slate-50 cursor-pointer ${startMonth === m.value ? "bg-blue-50 text-blue-600 font-bold" : "text-slate-700"}`}
+//                       >
+//                         {m.label}
+//                       </div>
+//                     ))}
+//                   </div>
+//                 )}
+//               </div>
+
+//               {/* Custom Start Day Selector */}
+//               {/* <div className="relative w-full" ref={startDayRef}>
+//                 <div
+//                   onClick={() => setStartDayOpen(!startDayOpen)}
+//                   className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-sm flex items-center justify-between cursor-pointer"
+//                 > */}
+//               {/* Custom Start Day Selector */}
+//               <div className="relative w-full" ref={startDayRef}>
+//                 <div
+//                   onClick={() => setStartDayOpen(!startDayOpen)}
+//                   className="w-full px-2 md:px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-sm flex items-center justify-between cursor-pointer"
+//                 >
+//                   <span className="truncate">{startDay || "Day (Not Set)"}</span>
+//                   <FiChevronDown className="text-slate-400 shrink-0" />
+//                 </div>
+//                 {startDayOpen && (
+//                   <div className="absolute z-50 left-0 right-0 bottom-full mb-1 bg-white border border-slate-200 rounded-lg shadow-xl max-h-48 overflow-y-auto">
+//                     <div
+//                       onClick={() => { setStartDay(""); setStartDayOpen(false); }}
+//                       className="px-3 py-2 text-sm hover:bg-slate-50 text-slate-400 italic cursor-pointer"
+//                     >
+//                       Day (Not Set)
+//                     </div>
+//                     {getDaysInMonth(startMonth).map((d) => (
+//                       <div
+//                         key={d}
+//                         onClick={() => { setStartDay(d); setStartDayOpen(false); }}
+//                         className={`px-3 py-2 text-sm hover:bg-slate-50 cursor-pointer ${startDay === d ? "bg-blue-50 text-blue-600 font-bold" : "text-slate-700"}`}
+//                       >
+//                         {d}
+//                       </div>
+//                     ))}
+//                   </div>
+//                 )}
+//               </div>
+//             </div>
+//             <input type="hidden" {...register("fyStart")} />
+//           </div>
+
+//           {/* Financial Year End Selectors Group */}
+//           <div>
+//             <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-2">
+//               Financial Year End
+//             </label>
+//             <div className="grid grid-cols-2 gap-2 w-full">
+//               {/* Custom End Month Selector */}
+//               {/* <div className="relative w-full" ref={endMonthRef}>
+//                 <div
+//                   onClick={() => setEndMonthOpen(!endMonthOpen)}
+//                   className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-sm flex items-center justify-between cursor-pointer"
+//                 > */}
+//                 {/* Custom End Month Selector */}
+//               <div className="relative w-full" ref={endMonthRef}>
+//                 <div
+//                   onClick={() => setEndMonthOpen(!endMonthOpen)}
+//                   className="w-full px-2 md:px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-sm flex items-center justify-between cursor-pointer"
+//                 >
+//                   <span className="truncate">
+//                     {GLOBAL_MONTHS.find((m) => m.value === endMonth)?.label || "Month (Not Set)"}
+//                   </span>
+//                   <FiChevronDown className="text-slate-400 shrink-0" />
+//                 </div>
+//                 {endMonthOpen && (
+//                   <div className="absolute z-50 left-0 right-0 bottom-full mb-1 bg-white border border-slate-200 rounded-lg shadow-xl max-h-48 overflow-y-auto">
+//                     <div
+//                       onClick={() => { setEndMonth(""); setEndMonthOpen(false); }}
+//                       className="px-3 py-2 text-sm hover:bg-slate-50 text-slate-400 italic cursor-pointer"
+//                     >
+//                       Month (Not Set)
+//                     </div>
+//                     {GLOBAL_MONTHS.map((m) => (
+//                       <div
+//                         key={m.value}
+//                         onClick={() => { setEndMonth(m.value); setEndMonthOpen(false); }}
+//                         className={`px-3 py-2 text-sm hover:bg-slate-50 cursor-pointer ${endMonth === m.value ? "bg-blue-50 text-blue-600 font-bold" : "text-slate-700"}`}
+//                       >
+//                         {m.label}
+//                       </div>
+//                     ))}
+//                   </div>
+//                 )}
+//               </div>
+
+//               {/* Custom End Day Selector */}
+//               {/* <div className="relative w-full" ref={endDayRef}>
+//                 <div
+//                   onClick={() => setEndDayOpen(!endDayOpen)}
+//                   className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-sm flex items-center justify-between cursor-pointer"
+//                 > */}
+//               {/* Custom End Day Selector */}
+//               <div className="relative w-full" ref={endDayRef}>
+//                 <div
+//                   onClick={() => setEndDayOpen(!endDayOpen)}
+//                   className="w-full px-2 md:px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-sm flex items-center justify-between cursor-pointer"
+//                 >
+//                   <span className="truncate">{endDay || "Day (Not Set)"}</span>
+//                   <FiChevronDown className="text-slate-400 shrink-0" />
+//                 </div>
+//                 {endDayOpen && (
+//                   <div className="absolute z-50 left-0 right-0 bottom-full mb-1 bg-white border border-slate-200 rounded-lg shadow-xl max-h-48 overflow-y-auto">
+//                     <div
+//                       onClick={() => { setEndDay(""); setEndDayOpen(false); }}
+//                       className="px-3 py-2 text-sm hover:bg-slate-50 text-slate-400 italic cursor-pointer"
+//                     >
+//                       Day (Not Set)
+//                     </div>
+//                     {getDaysInMonth(endMonth).map((d) => (
+//                       <div
+//                         key={d}
+//                         onClick={() => { setEndDay(d); setEndDayOpen(false); }}
+//                         className={`px-3 py-2 text-sm hover:bg-slate-50 cursor-pointer ${endDay === d ? "bg-blue-50 text-blue-600 font-bold" : "text-slate-700"}`}
+//                       >
+//                         {d}
+//                     </div>
+//                     ))}
+//                   </div>
+//                 )}
+//               </div>
+//             </div>
+//             <input type="hidden" {...register("fyEnd")} />
+//           </div>
+
+//           {/* Action Submit Button Container - Spanning Full Grid Width */}
+//           <div className="md:col-span-2 pt-2">
+//             <button
+//               type="submit"
+//               disabled={saving || !isDirty}
+//               className="w-full py-3 rounded-xl font-semibold text-white bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 transition flex items-center justify-center cursor-pointer shadow-lg disabled:opacity-50 text-sm"
+//             >
+//               {saving ? (
+//                 <BiLoaderAlt className="animate-spin mr-2 text-xl" />
+//               ) : (
+//                 <FiSave className="mr-1.5 text-base" />
+//               )}
+//               <span>Save Changes</span>
+//             </button>
+//           </div>
+//         </form>
+//       </div>
+//     </div>
+//   );
+// }
+
 import { useForm } from "react-hook-form";
 import { useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
@@ -8,10 +550,10 @@ import {
   GLOBAL_MONTHS,
   getDaysInMonth,
   splitMonthDay,
-  FINANCIAL_YEARS_BY_COUNTRY, // Imported to sync fiscal dates on select
+  FINANCIAL_YEARS_BY_COUNTRY,
 } from "../utils/dateHelpers";
 import toast from "react-hot-toast";
-import { FiSave, FiSearch, FiChevronDown } from "react-icons/fi";
+import { FiSave, FiSearch, FiChevronDown, FiMapPin, FiClock, FiCalendar, FiEdit2 } from "react-icons/fi";
 import { BiLoaderAlt } from "react-icons/bi";
 import { useState, useRef } from "react";
 
@@ -27,6 +569,7 @@ export default function Profile() {
 
   const countryRef = useRef(null);
   const timezoneRef = useRef(null);
+  
   // Custom Dropdown Open States for Month & Day Pickers
   const [startMonthOpen, setStartMonthOpen] = useState(false);
   const [startDayOpen, setStartDayOpen] = useState(false);
@@ -38,26 +581,26 @@ export default function Profile() {
   const endMonthRef = useRef(null);
   const endDayRef = useRef(null);
 
-  // Extract initial values using shared date utility logic safely checking raw strings first
-const getCleanDateString = (val) => {
-  if (!val) return "";
-  return val.includes("T") ? val.split("T")[0] : val;
-};
+  // Extract initial values safely checking raw strings first
+  const getCleanDateString = (val) => {
+    if (!val) return "";
+    return val.includes("T") ? val.split("T")[0] : val;
+  };
 
-const rawStart = profile?.fyStart || profile?.residencyPeriodStart;
-const cleanStart = getCleanDateString(rawStart);
-// If it contains a full year prefix (length of split array is 3), extract month-day from indices 1 and 2
-const startPartsArray = cleanStart ? cleanStart.split("-") : [];
-const initialStartParts = splitMonthDay(
-  startPartsArray.length === 3 ? `${startPartsArray[1]}-${startPartsArray[2]}` : cleanStart
-);
+  const rawStart = profile?.fyStart || profile?.residencyPeriodStart;
+  const cleanStart = getCleanDateString(rawStart);
+  const startPartsArray = cleanStart ? cleanStart.split("-") : [];
+  const initialStartParts = splitMonthDay(
+    startPartsArray.length === 3 ? `${startPartsArray[1]}-${startPartsArray[2]}` : cleanStart
+  );
 
-const rawEnd = profile?.fyEnd || profile?.residencyPeriodEnd;
-const cleanEnd = getCleanDateString(rawEnd);
-const endPartsArray = cleanEnd ? cleanEnd.split("-") : [];
-const initialEndParts = splitMonthDay(
-  endPartsArray.length === 3 ? `${endPartsArray[1]}-${endPartsArray[2]}` : cleanEnd
-);
+  const rawEnd = profile?.fyEnd || profile?.residencyPeriodEnd;
+  const cleanEnd = getCleanDateString(rawEnd);
+  const endPartsArray = cleanEnd ? cleanEnd.split("-") : [];
+  const initialEndParts = splitMonthDay(
+    endPartsArray.length === 3 ? `${endPartsArray[1]}-${endPartsArray[2]}` : cleanEnd
+  );
+
   // Dynamic dropdown selector states
   const [startMonth, setStartMonth] = useState(initialStartParts.month);
   const [startDay, setStartDay] = useState(initialStartParts.day);
@@ -173,29 +716,28 @@ const initialEndParts = splitMonthDay(
     timezones.find((t) => t.value === selectedTimezoneValue)?.label ||
     (profile?.timezone ? selectedTimezoneValue : "Not Set");
 
- const onUpdate = async (formData) => {
-  setSaving(true);
-  const currentYear = new Date().getFullYear();
-  const calculatedEndYear = Number(endMonth) < Number(startMonth) ? currentYear + 1 : currentYear;
+  const onUpdate = async (formData) => {
+    setSaving(true);
+    const currentYear = new Date().getFullYear();
+    const calculatedEndYear = Number(endMonth) < Number(startMonth) ? currentYear + 1 : currentYear;
 
-  try {
-    // Build full YYYY-MM-DD strings for both the period and fiscal fields uniformly
-    const fullPeriodStart = formData.fyStart ? `${currentYear}-${formData.fyStart}` : "not-set";
-    const fullPeriodEnd = formData.fyEnd ? `${calculatedEndYear}-${formData.fyEnd}` : "not-set";
+    try {
+      const fullPeriodStart = formData.fyStart ? `${currentYear}-${formData.fyStart}` : "not-set";
+      const fullPeriodEnd = formData.fyEnd ? `${calculatedEndYear}-${formData.fyEnd}` : "not-set";
 
-    const payload = {
-      nativeCountry: formData.nativeCountry || "not-set",
-      homeCountry: formData.nativeCountry || "not-set",
-      timezone: formData.timezone || "not-set",
-      residencyThreshold: formData.residencyThreshold
-        ? Number(formData.residencyThreshold)
-        : "not-set",
-      fyStart: fullPeriodStart,
-      residencyPeriodStart: fullPeriodStart,
-      fyEnd: fullPeriodEnd,
-      residencyPeriodEnd: fullPeriodEnd,
-    };
-    await updateUserProfileInDb(user.uid, payload);
+      const payload = {
+        nativeCountry: formData.nativeCountry || "not-set",
+        homeCountry: formData.nativeCountry || "not-set",
+        timezone: formData.timezone || "not-set",
+        residencyThreshold: formData.residencyThreshold
+          ? Number(formData.residencyThreshold)
+          : "not-set",
+        fyStart: fullPeriodStart,
+        residencyPeriodStart: fullPeriodStart,
+        fyEnd: fullPeriodEnd,
+        residencyPeriodEnd: fullPeriodEnd,
+      };
+      await updateUserProfileInDb(user.uid, payload);
       toast.success("Profile saved successfully.");
     } catch (e) {
       toast.error("Could not save changes.");
@@ -204,337 +746,389 @@ const initialEndParts = splitMonthDay(
     }
   };
 
-  // return (
-  //   <div className="max-w-5xl mx-auto space-y-3 relative z-10 px-3 md:px-6 pb-1 text-left w-full overflow-hidden">
-  // NEW CODE
- // NEW CODE
- // NEW CODE (Replace with this)
-return (
-    <div className="max-w-5xl mx-auto space-y-3 relative z-10 px-3 md:px-6 text-left w-full h-[calc(100dvh-140px)] overflow-y-auto overflow-x-hidden overscroll-contain">
+  // Helper utility to convert raw DB fields into short clean labels (e.g. "Jan 01")
+  const formatShortDateLabel = (dateStr) => {
+    if (!dateStr || dateStr === "not-set") return "";
+    try {
+      const dateObj = new Date(dateStr.includes("T") ? dateStr : `${dateStr}T00:00:00`);
+      return dateObj.toLocaleDateString("en-US", {
+        day: "2-digit",
+        month: "short",
+      });
+    } catch {
+      return "";
+    }
+  };
+
+  // Lock-synchronize visual state metrics until submission execution completes successfully
+  const savedCountryCode = profile?.nativeCountry || profile?.homeCountry || "not-set";
+  const savedCountryName = countries.find((c) => c.code === savedCountryCode)?.name || (savedCountryCode !== "not-set" ? savedCountryCode : "Not Set");
+  const savedTimezoneLabel = timezones.find((t) => t.value === profile?.timezone)?.label || (profile?.timezone ? profile.timezone : "Not Set");
+
+  const startLabel = formatShortDateLabel(profile?.fyStart || profile?.residencyPeriodStart);
+  const endLabel = formatShortDateLabel(profile?.fyEnd || profile?.residencyPeriodEnd);
   
-  <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 rounded-2xl p-4 md:p-6 shadow-xl">
-        <h1 className="text-xl md:text-3xl font-bold text-white">Profile Settings</h1>
-        <p className="text-indigo-100 mt-0.5 text-xs md:text-base max-w-2xl">
-          Set custom residency metrics and date parameters instantly.
-        </p>
-      </div>
+  const formattedStart = startLabel ? startLabel.split(" ").reverse().join(" ") : "";
+  const formattedEnd = endLabel ? endLabel.split(" ").reverse().join(" ") : "";
+  const savedPeriodDisplay = formattedStart && formattedEnd ? `${formattedStart} → ${formattedEnd}` : "Not Set";
 
-      {/* <div className="bg-white border border-slate-200 shadow-xl rounded-3xl p-6"> */}
-      {/* <div className="bg-white border border-slate-200 shadow-xl rounded-2xl md:rounded-3xl p-4 md:p-6"> */}
-     
-     {/* <div className="bg-white border border-slate-200 shadow-xl rounded-2xl md:rounded-3xl p-4 md:p-6">
-        <form onSubmit={handleSubmit(onUpdate)} className="grid grid-cols-1 md:grid-cols-2 gap-4"> */}
+  const profileCards = [
+    {
+      title: "Home Tracking Country",
+      value: savedCountryName,
+      icon: FiMapPin,
+      iconBg: "bg-blue-50 text-blue-600",
+    },
+    {
+      title: "Standard Timezone",
+      value: savedTimezoneLabel,
+      icon: FiClock,
+      iconBg: "bg-purple-50 text-purple-600",
+    },
+    {
+      title: "Tracking Horizon Period",
+      value: savedPeriodDisplay,
+      icon: FiCalendar,
+      iconBg: "bg-pink-50 text-pink-600",
+    },
+  ];
 
-      <div className="bg-white border border-slate-200 shadow-xl rounded-2xl md:rounded-3xl p-3 md:p-6 overflow-hidden">
-        <form onSubmit={handleSubmit(onUpdate)} className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-full">
-          {/* Country Selection Dropdown Panel */}
-          <div className="relative" ref={countryRef}>
-            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-2">
-              Native Country
-            </label>
-            <div
-              onClick={() => setCountryDropdownOpen(!countryDropdownOpen)}
-              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between cursor-pointer"
-            >
-              <span className="truncate">{currentCountryName}</span>
-              <FiChevronDown />
-            </div>
-            {countryDropdownOpen && (
-              <div className="absolute z-50 left-0 right-0 mt-1 bg-white rounded-xl border border-slate-200 shadow-xl overflow-hidden">
-                <div className="flex items-center gap-2 p-3 border-b bg-slate-50">
-                  <FiSearch className="text-slate-400" />
-                  <input
-                    type="text"
-                    placeholder="Search Country..."
-                    value={countrySearchQuery}
-                    onChange={(e) => setCountrySearchQuery(e.target.value)}
-                    className="w-full outline-none text-base bg-transparent text-slate-900"
-                  />
+  return (
+    // FIX: Removed px-4/px-3 and md:px-6 to match full sidebar screen layout edge alignment cleanly
+    <div className="max-w-5xl mx-auto space-y-3 relative z-10 text-left w-full h-[calc(100dvh-140px)] overflow-y-auto overflow-x-hidden overscroll-contain">
+      
+      {/* Universal Wrapper Card Block */}
+      <div className="bg-white border border-slate-200 rounded-3xl p-4 sm:p-5 shadow-sm space-y-4">
+        
+        {/* NEW DESIGN: Blue header banner replaced directly with the Profile Summary parameters */}
+        <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 rounded-2xl p-4 sm:p-5 shadow-md text-white">
+          <h1 className="text-xl font-bold">Profile Summary</h1>
+          <p className="text-indigo-100 mt-0.5 text-xs sm:text-sm max-w-2xl opacity-90">
+            Overview of your current core settings, tracking horizons, and active global footprint metrics.
+          </p>
+        </div>
+
+        {/* Mapped Informational Component Cards Grid System */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {profileCards.map((card, index) => {
+            const Icon = card.icon;
+            return (
+              <div
+                key={index}
+                className="bg-gradient-to-r from-blue-50 to-purple-50 border-slate-100 rounded-2xl p-3.5 hover:shadow-sm transition-all"
+              >
+                <div className="flex items-start justify-between">
+                  <div className="space-y-1">
+                    <p className="text-[10px] uppercase tracking-wide text-slate-500 font-bold">
+                      {card.title}
+                    </p>
+                    <p className="text-sm md:text-base font-semibold text-slate-900 break-words mt-1 leading-tight tracking-tight">
+                      {card.value}
+                    </p>
+                  </div>
+                  <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${card.iconBg}`}>
+                    <Icon className="text-sm" />
+                  </div>
                 </div>
-                <div className="max-h-48 overflow-y-auto">
-                  {filteredCountries.map((country) => (
-                    <div
-                      key={country.code}
-                      onClick={() => {
-                        setValue("nativeCountry", country.code, {
-                          shouldDirty: true,
-                        });
+              </div>
+            );
+          })}
+        </div>
 
-                        const detectedTimezone = getTimezoneByCountry(
-                          country.code,
-                        );
-
-                        if (detectedTimezone) {
-                          setValue("timezone", detectedTimezone, {
+        {/* Form parameters fields block layout container */}
+        <div className="border-t border-slate-100 pt-4">
+          <div className="pb-3 flex items-center gap-2">
+            <div className="w-7 h-7 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center">
+              <FiEdit2 className="text-xs" />
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-slate-900">Update Profile Settings</h2>
+              <p className="text-xs text-slate-500">Modify your native parameter thresholds and parameters below.</p>
+            </div>
+          </div>
+          
+          <form onSubmit={handleSubmit(onUpdate)} className="grid grid-cols-1 md:grid-cols-2 gap-3.5 max-h-full">
+            
+            {/* Country Selection Dropdown Panel */}
+            <div className="relative" ref={countryRef}>
+              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
+                Native Country
+              </label>
+              <div
+                onClick={() => setCountryDropdownOpen(!countryDropdownOpen)}
+                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between cursor-pointer text-sm text-slate-800 font-medium"
+              >
+                <span className="truncate">{currentCountryName}</span>
+                <FiChevronDown className="text-slate-400" />
+              </div>
+              {countryDropdownOpen && (
+                <div className="absolute z-50 left-0 right-0 mt-1 bg-white rounded-xl border border-slate-200 shadow-xl overflow-hidden">
+                  <div className="flex items-center gap-2 p-3 border-b bg-slate-50">
+                    <FiSearch className="text-slate-400" />
+                    <input
+                      type="text"
+                      placeholder="Search Country..."
+                      value={countrySearchQuery}
+                      onChange={(e) => setCountrySearchQuery(e.target.value)}
+                      className="w-full outline-none text-base bg-transparent text-slate-900"
+                    />
+                  </div>
+                  <div className="max-h-48 overflow-y-auto">
+                    {filteredCountries.map((country) => (
+                      <div
+                        key={country.code}
+                        onClick={() => {
+                          setValue("nativeCountry", country.code, {
                             shouldDirty: true,
                           });
-                        }
 
-                        // Auto-select financial period start and end dates based on picked country mapping rules
-                        const fyDates = FINANCIAL_YEARS_BY_COUNTRY?.[country.code.toUpperCase()] || 
-                                        FINANCIAL_YEARS_BY_COUNTRY?.["DEFAULT"] || 
-                                        { startMonth: "01", startDay: "01", endMonth: "12", endDay: "31" };
-                        
-                        setStartMonth(fyDates.startMonth);
-                        setStartDay(fyDates.startDay);
-                        setEndMonth(fyDates.endMonth);
-                        setEndDay(fyDates.endDay);
+                          const detectedTimezone = getTimezoneByCountry(
+                            country.code,
+                          );
 
-                        setCountryDropdownOpen(false);
-                        setCountrySearchQuery("");
+                          if (detectedTimezone) {
+                            setValue("timezone", detectedTimezone, {
+                              shouldDirty: true,
+                            });
+                          }
 
-                        setTimezoneDropdownOpen(false);
-                        setTimezoneSearchQuery("");
-                      }}
-                      className="px-4 py-2.5 hover:bg-slate-50 text-base cursor-pointer"
-                    >
-                      {country.name}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-            <input type="hidden" {...register("nativeCountry")} />
-          </div>
+                          const fyDates = FINANCIAL_YEARS_BY_COUNTRY?.[country.code.toUpperCase()] || 
+                                          FINANCIAL_YEARS_BY_COUNTRY?.["DEFAULT"] || 
+                                          { startMonth: "01", startDay: "01", endMonth: "12", endDay: "31" };
+                          
+                          setStartMonth(fyDates.startMonth);
+                          setStartDay(fyDates.startDay);
+                          setEndMonth(fyDates.endMonth);
+                          setEndDay(fyDates.endDay);
 
-          {/* Timezone Selection Dropdown Panel */}
-          <div className="relative" ref={timezoneRef}>
-            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-2">
-              Target Timezone Context
-            </label>
-            <div
-              onClick={() => setTimezoneDropdownOpen(!timezoneDropdownOpen)}
-              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between cursor-pointer"
-            >
-              <span className="truncate">{currentTimezoneLabel}</span>
-              <FiChevronDown />
-            </div>
-            {timezoneDropdownOpen && (
-              <div className="absolute z-50 left-0 right-0 mt-2 bg-white rounded-xl border border-slate-200 shadow-xl overflow-hidden">
-                <div className="flex items-center gap-2 p-3 border-b bg-slate-50">
-                  <FiSearch className="text-slate-400" />
-                  <input
-                    type="text"
-                    placeholder="Search Timezone..."
-                    value={timezoneSearchQuery}
-                    onChange={(e) => setTimezoneSearchQuery(e.target.value)}
-                    className="w-full outline-none text-base bg-transparent text-slate-900"
-                  />
-                </div>
-                <div className="max-h-48 overflow-y-auto">
-                  {filteredTimezones.map((tz) => (
-                    <div
-                      key={tz.value}
-                      onClick={() => {
-                        setValue("timezone", tz.value, { shouldDirty: true });
-                        setTimezoneDropdownOpen(false);
-                      }}
-                      className="px-4 py-2.5 hover:bg-slate-50 text-base cursor-pointer"
-                    >
-                      {tz.label}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-            <input type="hidden" {...register("timezone")} />
-          </div>
+                          setCountryDropdownOpen(false);
+                          setCountrySearchQuery("");
 
-          {/* Threshold Days Field */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-2">
-              Residency Threshold (Days)
-            </label>
-            <input
-              type="number"
-              placeholder="Not Set"
-              {...register("residencyThreshold", { min: 1, max: 365 })}
-              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-base"
-            />
-          </div>
-
-{/* Financial Year Start Selectors Group */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-2">
-              Financial Year Start
-            </label>
-            <div className="grid grid-cols-2 gap-2 w-full">
-              {/* Custom Start Month Selector */}
-              {/* <div className="relative w-full" ref={startMonthRef}>
-                <div
-                  onClick={() => setStartMonthOpen(!startMonthOpen)}
-                  className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-sm flex items-center justify-between cursor-pointer"
-                > */}
-              {/* Custom Start Month Selector */}
-              <div className="relative w-full" ref={startMonthRef}>
-                <div
-                  onClick={() => setStartMonthOpen(!startMonthOpen)}
-                  className="w-full px-2 md:px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-sm flex items-center justify-between cursor-pointer"
-                >
-                  <span className="truncate">
-                    {GLOBAL_MONTHS.find((m) => m.value === startMonth)?.label || "Month (Not Set)"}
-                  </span>
-                  <FiChevronDown className="text-slate-400 shrink-0" />
-                </div>
-                {startMonthOpen && (
-                  <div className="absolute z-50 left-0 right-0 bottom-full mb-1 bg-white border border-slate-200 rounded-lg shadow-xl max-h-48 overflow-y-auto">
-                    <div
-                      onClick={() => { setStartMonth(""); setStartMonthOpen(false); }}
-                      className="px-3 py-2 text-sm hover:bg-slate-50 text-slate-400 italic cursor-pointer"
-                    >
-                      Month (Not Set)
-                    </div>
-                    {GLOBAL_MONTHS.map((m) => (
-                      <div
-                        key={m.value}
-                        onClick={() => { setStartMonth(m.value); setStartMonthOpen(false); }}
-                        className={`px-3 py-2 text-sm hover:bg-slate-50 cursor-pointer ${startMonth === m.value ? "bg-blue-50 text-blue-600 font-bold" : "text-slate-700"}`}
+                          setTimezoneDropdownOpen(false);
+                          setTimezoneSearchQuery("");
+                        }}
+                        className="px-4 py-2.5 hover:bg-slate-50 text-sm cursor-pointer text-slate-700"
                       >
-                        {m.label}
+                        {country.name}
                       </div>
                     ))}
                   </div>
-                )}
-              </div>
-
-              {/* Custom Start Day Selector */}
-              {/* <div className="relative w-full" ref={startDayRef}>
-                <div
-                  onClick={() => setStartDayOpen(!startDayOpen)}
-                  className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-sm flex items-center justify-between cursor-pointer"
-                > */}
-              {/* Custom Start Day Selector */}
-              <div className="relative w-full" ref={startDayRef}>
-                <div
-                  onClick={() => setStartDayOpen(!startDayOpen)}
-                  className="w-full px-2 md:px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-sm flex items-center justify-between cursor-pointer"
-                >
-                  <span className="truncate">{startDay || "Day (Not Set)"}</span>
-                  <FiChevronDown className="text-slate-400 shrink-0" />
                 </div>
-                {startDayOpen && (
-                  <div className="absolute z-50 left-0 right-0 bottom-full mb-1 bg-white border border-slate-200 rounded-lg shadow-xl max-h-48 overflow-y-auto">
-                    <div
-                      onClick={() => { setStartDay(""); setStartDayOpen(false); }}
-                      className="px-3 py-2 text-sm hover:bg-slate-50 text-slate-400 italic cursor-pointer"
-                    >
-                      Day (Not Set)
-                    </div>
-                    {getDaysInMonth(startMonth).map((d) => (
-                      <div
-                        key={d}
-                        onClick={() => { setStartDay(d); setStartDayOpen(false); }}
-                        className={`px-3 py-2 text-sm hover:bg-slate-50 cursor-pointer ${startDay === d ? "bg-blue-50 text-blue-600 font-bold" : "text-slate-700"}`}
-                      >
-                        {d}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-            <input type="hidden" {...register("fyStart")} />
-          </div>
-
-          {/* Financial Year End Selectors Group */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-2">
-              Financial Year End
-            </label>
-            <div className="grid grid-cols-2 gap-2 w-full">
-              {/* Custom End Month Selector */}
-              {/* <div className="relative w-full" ref={endMonthRef}>
-                <div
-                  onClick={() => setEndMonthOpen(!endMonthOpen)}
-                  className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-sm flex items-center justify-between cursor-pointer"
-                > */}
-                {/* Custom End Month Selector */}
-              <div className="relative w-full" ref={endMonthRef}>
-                <div
-                  onClick={() => setEndMonthOpen(!endMonthOpen)}
-                  className="w-full px-2 md:px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-sm flex items-center justify-between cursor-pointer"
-                >
-                  <span className="truncate">
-                    {GLOBAL_MONTHS.find((m) => m.value === endMonth)?.label || "Month (Not Set)"}
-                  </span>
-                  <FiChevronDown className="text-slate-400 shrink-0" />
-                </div>
-                {endMonthOpen && (
-                  <div className="absolute z-50 left-0 right-0 bottom-full mb-1 bg-white border border-slate-200 rounded-lg shadow-xl max-h-48 overflow-y-auto">
-                    <div
-                      onClick={() => { setEndMonth(""); setEndMonthOpen(false); }}
-                      className="px-3 py-2 text-sm hover:bg-slate-50 text-slate-400 italic cursor-pointer"
-                    >
-                      Month (Not Set)
-                    </div>
-                    {GLOBAL_MONTHS.map((m) => (
-                      <div
-                        key={m.value}
-                        onClick={() => { setEndMonth(m.value); setEndMonthOpen(false); }}
-                        className={`px-3 py-2 text-sm hover:bg-slate-50 cursor-pointer ${endMonth === m.value ? "bg-blue-50 text-blue-600 font-bold" : "text-slate-700"}`}
-                      >
-                        {m.label}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Custom End Day Selector */}
-              {/* <div className="relative w-full" ref={endDayRef}>
-                <div
-                  onClick={() => setEndDayOpen(!endDayOpen)}
-                  className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-sm flex items-center justify-between cursor-pointer"
-                > */}
-              {/* Custom End Day Selector */}
-              <div className="relative w-full" ref={endDayRef}>
-                <div
-                  onClick={() => setEndDayOpen(!endDayOpen)}
-                  className="w-full px-2 md:px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-sm flex items-center justify-between cursor-pointer"
-                >
-                  <span className="truncate">{endDay || "Day (Not Set)"}</span>
-                  <FiChevronDown className="text-slate-400 shrink-0" />
-                </div>
-                {endDayOpen && (
-                  <div className="absolute z-50 left-0 right-0 bottom-full mb-1 bg-white border border-slate-200 rounded-lg shadow-xl max-h-48 overflow-y-auto">
-                    <div
-                      onClick={() => { setEndDay(""); setEndDayOpen(false); }}
-                      className="px-3 py-2 text-sm hover:bg-slate-50 text-slate-400 italic cursor-pointer"
-                    >
-                      Day (Not Set)
-                    </div>
-                    {getDaysInMonth(endMonth).map((d) => (
-                      <div
-                        key={d}
-                        onClick={() => { setEndDay(d); setEndDayOpen(false); }}
-                        className={`px-3 py-2 text-sm hover:bg-slate-50 cursor-pointer ${endDay === d ? "bg-blue-50 text-blue-600 font-bold" : "text-slate-700"}`}
-                      >
-                        {d}
-                    </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-            <input type="hidden" {...register("fyEnd")} />
-          </div>
-
-          {/* Action Submit Button Container - Spanning Full Grid Width */}
-          <div className="md:col-span-2 pt-2">
-            <button
-              type="submit"
-              disabled={saving || !isDirty}
-              className="w-full py-3 rounded-xl font-semibold text-white bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 transition flex items-center justify-center cursor-pointer shadow-lg disabled:opacity-50 text-sm"
-            >
-              {saving ? (
-                <BiLoaderAlt className="animate-spin mr-2 text-xl" />
-              ) : (
-                <FiSave className="mr-1.5 text-base" />
               )}
-              <span>Save Changes</span>
-            </button>
-          </div>
-        </form>
+              <input type="hidden" {...register("nativeCountry")} />
+            </div>
+
+            {/* Timezone Selection Dropdown Panel */}
+            <div className="relative" ref={timezoneRef}>
+              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
+                Target Timezone Context
+              </label>
+              <div
+                onClick={() => setTimezoneDropdownOpen(!timezoneDropdownOpen)}
+                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between cursor-pointer text-sm text-slate-800 font-medium"
+              >
+                <span className="truncate">{currentTimezoneLabel}</span>
+                <FiChevronDown className="text-slate-400" />
+              </div>
+              {timezoneDropdownOpen && (
+                <div className="absolute z-50 left-0 right-0 mt-2 bg-white rounded-xl border border-slate-200 shadow-xl overflow-hidden">
+                  <div className="flex items-center gap-2 p-3 border-b bg-slate-50">
+                    <FiSearch className="text-slate-400" />
+                    <input
+                      type="text"
+                      placeholder="Search Timezone..."
+                      value={timezoneSearchQuery}
+                      onChange={(e) => setTimezoneSearchQuery(e.target.value)}
+                      className="w-full outline-none text-base bg-transparent text-slate-900"
+                    />
+                  </div>
+                  <div className="max-h-48 overflow-y-auto">
+                    {filteredTimezones.map((tz) => (
+                      <div
+                        key={tz.value}
+                        onClick={() => {
+                          setValue("timezone", tz.value, { shouldDirty: true });
+                          setTimezoneDropdownOpen(false);
+                        }}
+                        className="px-4 py-2.5 hover:bg-slate-50 text-sm cursor-pointer text-slate-700"
+                      >
+                        {tz.label}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              <input type="hidden" {...register("timezone")} />
+            </div>
+
+            {/* Threshold Days Field */}
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
+                Residency Threshold (Days)
+              </label>
+              <input
+                type="number"
+                placeholder="Not Set"
+                {...register("residencyThreshold", { min: 1, max: 365 })}
+                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 font-medium placeholder-slate-400 outline-none focus:border-slate-300"
+              />
+            </div>
+
+            {/* Financial Year Start Selectors Group */}
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
+                Financial Year Start
+              </label>
+              <div className="grid grid-cols-2 gap-2 w-full">
+                <div className="relative w-full" ref={startMonthRef}>
+                  <div
+                    onClick={() => setStartMonthOpen(!startMonthOpen)}
+                    className="w-full px-2 md:px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 font-medium text-xs flex items-center justify-between cursor-pointer"
+                  >
+                    <span className="truncate">
+                      {GLOBAL_MONTHS.find((m) => m.value === startMonth)?.label || "Month"}
+                    </span>
+                    <FiChevronDown className="text-slate-400 shrink-0" />
+                  </div>
+                  {startMonthOpen && (
+                    <div className="absolute z-50 left-0 right-0 bottom-full mb-1 bg-white border border-slate-200 rounded-lg shadow-xl max-h-48 overflow-y-auto">
+                      <div
+                        onClick={() => { setStartMonth(""); setStartMonthOpen(false); }}
+                        className="px-3 py-2 text-sm hover:bg-slate-50 text-slate-400 italic cursor-pointer"
+                      >
+                        Month (Not Set)
+                      </div>
+                      {GLOBAL_MONTHS.map((m) => (
+                        <div
+                          key={m.value}
+                          onClick={() => { setStartMonth(m.value); setStartMonthOpen(false); }}
+                          className={`px-3 py-2 text-sm hover:bg-slate-50 cursor-pointer ${startMonth === m.value ? "bg-blue-50 text-blue-600 font-bold" : "text-slate-700"}`}
+                        >
+                          {m.label}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="relative w-full" ref={startDayRef}>
+                  <div
+                    onClick={() => setStartDayOpen(!startDayOpen)}
+                    className="w-full px-2 md:px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 font-medium text-xs flex items-center justify-between cursor-pointer"
+                  >
+                    <span className="truncate">{startDay || "Day"}</span>
+                    <FiChevronDown className="text-slate-400 shrink-0" />
+                  </div>
+                  {startDayOpen && (
+                    <div className="absolute z-50 left-0 right-0 bottom-full mb-1 bg-white border border-slate-200 rounded-lg shadow-xl max-h-48 overflow-y-auto">
+                      <div
+                        onClick={() => { setStartDay(""); setStartDayOpen(false); }}
+                        className="px-3 py-2 text-sm hover:bg-slate-50 text-slate-400 italic cursor-pointer"
+                      >
+                        Day (Not Set)
+                      </div>
+                      {getDaysInMonth(startMonth).map((d) => (
+                        <div
+                          key={d}
+                          onClick={() => { setStartDay(d); setStartDayOpen(false); }}
+                          className={`px-3 py-2 text-sm hover:bg-slate-50 cursor-pointer ${startDay === d ? "bg-blue-50 text-blue-600 font-bold" : "text-slate-700"}`}
+                        >
+                          {d}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+              <input type="hidden" {...register("fyStart")} />
+            </div>
+
+            {/* Financial Year End Selectors Group */}
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
+                Financial Year End
+              </label>
+              <div className="grid grid-cols-2 gap-2 w-full">
+                <div className="relative w-full" ref={endMonthRef}>
+                  <div
+                    onClick={() => setEndMonthOpen(!endMonthOpen)}
+                    className="w-full px-2 md:px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 font-medium text-xs flex items-center justify-between cursor-pointer"
+                  >
+                    <span className="truncate">
+                      {GLOBAL_MONTHS.find((m) => m.value === endMonth)?.label || "Month"}
+                    </span>
+                    <FiChevronDown className="text-slate-400 shrink-0" />
+                  </div>
+                  {endMonthOpen && (
+                    <div className="absolute z-50 left-0 right-0 bottom-full mb-1 bg-white border border-slate-200 rounded-lg shadow-xl max-h-48 overflow-y-auto">
+                      <div
+                        onClick={() => { setEndMonth(""); setEndMonthOpen(false); }}
+                        className="px-3 py-2 text-sm hover:bg-slate-50 text-slate-400 italic cursor-pointer"
+                      >
+                        Month (Not Set)
+                      </div>
+                      {GLOBAL_MONTHS.map((m) => (
+                        <div
+                          key={m.value}
+                          onClick={() => { setEndMonth(m.value); setEndMonthOpen(false); }}
+                          className={`px-3 py-2 text-sm hover:bg-slate-50 cursor-pointer ${endMonth === m.value ? "bg-blue-50 text-blue-600 font-bold" : "text-slate-700"}`}
+                        >
+                          {m.label}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="relative w-full" ref={endDayRef}>
+                  <div
+                    onClick={() => setEndDayOpen(!endDayOpen)}
+                    className="w-full px-2 md:px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 font-medium text-xs flex items-center justify-between cursor-pointer"
+                  >
+                    <span className="truncate">{endDay || "Day"}</span>
+                    <FiChevronDown className="text-slate-400 shrink-0" />
+                  </div>
+                  {endDayOpen && (
+                    <div className="absolute z-50 left-0 right-0 bottom-full mb-1 bg-white border border-slate-200 rounded-lg shadow-xl max-h-48 overflow-y-auto">
+                      <div
+                        onClick={() => { setEndDay(""); setEndDayOpen(false); }}
+                        className="px-3 py-2 text-sm hover:bg-slate-50 text-slate-400 italic cursor-pointer"
+                      >
+                        Day (Not Set)
+                      </div>
+                      {getDaysInMonth(endMonth).map((d) => (
+                        <div
+                          key={d}
+                          onClick={() => { setEndDay(d); setEndDayOpen(false); }}
+                          className={`px-3 py-2 text-sm hover:bg-slate-50 cursor-pointer ${endDay === d ? "bg-blue-50 text-blue-600 font-bold" : "text-slate-700"}`}
+                        >
+                          {d}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+              <input type="hidden" {...register("fyEnd")} />
+            </div>
+
+            {/* Action Submit Button Container */}
+            <div className="md:col-span-2 pt-1.5">
+              <button
+                type="submit"
+                disabled={saving || !isDirty}
+                className="w-full py-2.5 rounded-xl font-semibold text-white bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 transition flex items-center justify-center cursor-pointer shadow-md disabled:opacity-50 text-sm"
+              >
+                {saving ? (
+                  <BiLoaderAlt className="animate-spin mr-2 text-xl" />
+                ) : (
+                  <FiSave className="mr-1.5 text-base" />
+                )}
+                <span>Save Changes</span>
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );

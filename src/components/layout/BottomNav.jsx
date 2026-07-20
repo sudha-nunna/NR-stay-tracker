@@ -5,16 +5,17 @@ export default function BottomNav() {
   const menuItems = [
     { path: "/", label: "Dashboard", icon: FiGrid, end: true },
      { path: "/travel-history", label: "History", icon: FiActivity },
-    { path: "/trips-overview", label: "Trips", icon: FiMap },
+    // { path: "/trips-overview", label: "Trips", icon: FiMap },
    
     { path: "/analytics", label: "Analytics", icon: FiPieChart },
     { path: "/profile", label: "Profile", icon: FiUser },
   ];
 
+ // NEW CODE
   return (
     <nav
-      className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-slate-200 shadow-[0_-2px_10px_rgba(0,0,0,0.06)]"
-      style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      className="md:hidden fixed bottom-0 left-0 right-0 z-[9999] bg-white border-t border-slate-200 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] layout-navbar-fixed-element"
+      style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 4px)" }}
     >
       <div className="flex items-stretch justify-between px-1">
         {menuItems.map((item) => {

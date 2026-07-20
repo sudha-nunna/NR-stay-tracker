@@ -95,16 +95,16 @@ export default function Analytics() {
   const totalStayDays = homeDays + internationalDays;
   const isActivePrimaryBase =
     targetDropdownSelectionCode === primaryCountryCode;
-  
-  const activeLocalThreshold = isActivePrimaryBase
-  ? definedMilestone
-  : Math.max(...Object.values(countryDaysMap), 1);
 
-const activeAllocatedPercentage = Math.min(
-  Math.round((activeDaysLogged / activeLocalThreshold) * 100),
-  100,
-);
-  
+  const activeLocalThreshold = isActivePrimaryBase
+    ? definedMilestone
+    : Math.max(...Object.values(countryDaysMap), 1);
+
+  const activeAllocatedPercentage = Math.min(
+    Math.round((activeDaysLogged / activeLocalThreshold) * 100),
+    100,
+  );
+
   return (
     <div className="space-y-6 relative z-10 text-left">
       {/* Updated items alignment and gap to prevent overlapping or crushing on small screens */}
@@ -123,45 +123,17 @@ const activeAllocatedPercentage = Math.min(
           <p className="text-[10px] sm:text-xs uppercase tracking-wide opacity-80 whitespace-nowrap">
             Total Stay Days
           </p>
-          <h2 className="text-xl sm:text-2xl font-bold mt-0.5">{homeDays + internationalDays}</h2>
-        </div>
-      </div>
-      {/* KPI CARDS */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm">
-          <p className="text-base text-slate-500">Home Country Days</p>
-          <h2 className="text-4xl font-bold text-green-600 mt-3">{homeDays}</h2>
-        </div>
-
-        <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm">
-          <p className="text-base text-slate-500">Abroad Days</p>
-          <h2 className="text-4xl font-bold text-blue-600 mt-3">
-            {internationalDays}
-          </h2>
-        </div>
-
-
-        <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm">
-          <p className="text-base text-slate-500">Residency Progress</p>
-          <h2 className="text-2xl font-bold text-indigo-600 mt-3">
-            {calculation.status}
-          </h2>
-        </div>
-
-        <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm">
-          <p className="text-base text-slate-500">Days Remaining</p>
-          <h2 className="text-4xl font-bold text-orange-600 mt-3">
-            {calculation.daysRemaining}
+          <h2 className="text-xl sm:text-2xl font-bold mt-0.5">
+            {homeDays + internationalDays}
           </h2>
         </div>
       </div>
 
       {/* MULTI-OFFICE SPLIT JOURNEY PLANNER */}
-      {/* MULTI-OFFICE SPLIT JOURNEY PLANNER */}
-      <div className="bg-gradient-to-br from-green-100 to-indigo-100 border border-slate-200 rounded-3xl p-4 sm:p-6 shadow-sm w-full overflow-hidden">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-200/60 pb-4 mb-6 w-full">
+      <div className="bg-gradient-to-br from-green-100 to-indigo-100 border border-slate-200 rounded-2xl p-3 sm:p-4 shadow-sm w-full overflow-hidden space-y-2.5">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-2 border-b border-slate-200/60 pb-2 w-full">
           <div className="flex items-start gap-3 min-w-0 w-full">
-            <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0 mt-0.5">
+            <div className="w-7 h-7 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
               <FiGlobe className="text-lg" />
             </div>
             <div className="min-w-0 flex-1">
@@ -175,7 +147,7 @@ const activeAllocatedPercentage = Math.min(
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full lg:w-auto shrink-0">
+          {/* <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full lg:w-auto shrink-0">
             <label className="text-xs font-bold text-slate-600 uppercase tracking-wider block sm:inline">
               Select Country:
             </label>
@@ -184,6 +156,16 @@ const activeAllocatedPercentage = Math.min(
               value={targetDropdownSelectionCode}
               onChange={(e) => setSelectedCountryCode(e.target.value)}
               className="px-3 py-1.5 bg-white border border-slate-200 text-slate-700 text-xs font-semibold rounded-lg shadow-sm hover:border-slate-300 transition outline-none cursor-pointer max-w-xs"
+            > */}
+          <div className="flex flex-row items-center gap-1.5 shrink-0 max-w-max mt-1 sm:mt-0">
+            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">
+              Select Country:
+            </label>
+
+            <select
+              value={targetDropdownSelectionCode}
+              onChange={(e) => setSelectedCountryCode(e.target.value)}
+              className="px-2 py-1 bg-white border border-slate-200 text-slate-700 text-[11px] font-bold rounded-md shadow-sm outline-none cursor-pointer w-auto min-w-[110px] max-w-[150px] focus:border-slate-300"
             >
               {Object.keys(countryDaysMap).map((code) => (
                 <option key={code} value={code}>
@@ -196,7 +178,7 @@ const activeAllocatedPercentage = Math.min(
           </div>
         </div>
 
-        <div className="border border-slate-100 rounded-2xl p-4 bg-slate-50/50 w-full overflow-hidden">
+        <div className="border border-slate-200/60 rounded-xl p-2 bg-white w-full overflow-hidden">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2 w-full flex-wrap sm:flex-nowrap">
             <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap min-w-0">
               <span className="px-2.5 py-0.5 rounded-md bg-blue-800 text-white font-bold text-xs uppercase tracking-wider shrink-0">
@@ -237,7 +219,7 @@ const activeAllocatedPercentage = Math.min(
             </span> */}
           </div>
         </div>
-        <div className="mt-4 pt-3 border-t border-slate-200">
+        <div className="mt-1 pt-2 border-t border-slate-200/60">
           <div className="flex items-center gap-3 text-sm">
             <span className="font-semibold text-slate-600">
               All Countries Total Stay Days

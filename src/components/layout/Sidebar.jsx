@@ -24,7 +24,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
       label: "Travel History",
       icon: FiActivity,
     },
-    { path: "/trips-overview", label: "Trips Overview", icon: FiMap },
+    // { path: "/trips-overview", label: "Trips Overview", icon: FiMap },
     
     {
       path: "/analytics",

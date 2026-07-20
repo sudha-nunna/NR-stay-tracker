@@ -1,4 +1,4 @@
-import { parseISO, format, subDays, addDays, isAfter } from "date-fns";
+import { parseISO, format, subDays, addDays } from "date-fns";
 import { getDoc, doc } from "firebase/firestore";
 import { db } from "../firebase/firebaseConfig";
 import toast from "react-hot-toast";
@@ -19,57 +19,34 @@ export function usePresenceToggle(user, profile, records) {
     try {
       if (!user || !profile) return;
 
+      setSplittingFlag(true);
+
       const homeBase = (
         profile?.homeCountry ||
         profile?.nativeCountry ||
         "US"
       ).toUpperCase();
 
-      const cleanDateStr = dateStr.includes("T")
-        ? dateStr.split("T")[0]
-        : dateStr;
-
       const normalizeDate = (d) => {
         if (!d) return d;
         return d.includes("T") ? d.split("T")[0] : d;
       };
 
-      const explicitSingleRecord = records.find((r) => {
-        const rDept = normalizeDate(r.departureDate);
-        const rArr = normalizeDate(r.arrivalDate);
+      const cleanDateStr = normalizeDate(
+        dateStr.includes("T") ? dateStr.split("T")[0] : dateStr,
+      );
+
+      const isSingleDayOverride = (r) => {
+        const dep = normalizeDate(r.departureDate);
+        const arr = normalizeDate(r.arrivalDate);
         return (
-          rDept === cleanDateStr &&
-          rArr === cleanDateStr &&
+          dep === arr &&
           (r.purpose === "Calendar Check-In" ||
             r.purpose === "Calendar Check-Out" ||
-            r.purpose === "Daily GPS Check-In")
+            r.purpose === "Daily GPS Check-In" ||
+            r.purpose === "Country Changed")
         );
-      });
-
-      const parentRangeRecord = records
-        .filter((r) => {
-          if (!r.departureDate || !r.arrivalDate) return false;
-          const rDept = normalizeDate(r.departureDate);
-          const rArr = normalizeDate(r.arrivalDate);
-          if (
-            rDept === rArr &&
-            (r.purpose === "Calendar Check-In" ||
-              r.purpose === "Calendar Check-Out" ||
-              r.purpose === "Daily GPS Check-In")
-          ) {
-            return false;
-          }
-          return cleanDateStr >= rDept && cleanDateStr <= rArr;
-        })
-        .sort((a, b) => {
-          const aLength =
-            new Date(normalizeDate(a.arrivalDate)) -
-            new Date(normalizeDate(a.departureDate));
-          const bLength =
-            new Date(normalizeDate(b.arrivalDate)) -
-            new Date(normalizeDate(b.departureDate));
-          return aLength - bLength;
-        })[0];
+      };
 
       const targetToCountry =
         nextStatus === "Abroad Stay" ? "ABROAD" : homeBase;
@@ -80,222 +57,169 @@ export function usePresenceToggle(user, profile, records) {
           ? "Calendar Check-In"
           : "Calendar Check-Out";
 
-      if (explicitSingleRecord) {
-        await updateTravelRecord(explicitSingleRecord.recordId, {
-          departureDate: cleanDateStr,
-          arrivalDate: cleanDateStr,
-          fromCountry: targetFromCountry,
-          toCountry: targetToCountry,
-          purpose: targetPurpose,
-        });
-      } else if (parentRangeRecord) {
-        const pStartStr = normalizeDate(parentRangeRecord.departureDate);
-        const pEndStr = normalizeDate(parentRangeRecord.arrivalDate);
+      const centerSlice = {
+        departureDate: cleanDateStr,
+        arrivalDate: cleanDateStr,
+        fromCountry: targetFromCountry,
+        toCountry: targetToCountry,
+        purpose: targetPurpose,
+      };
 
+      const explicitSingleRecord = records.find(
+        (r) =>
+          normalizeDate(r.departureDate) === cleanDateStr &&
+          normalizeDate(r.arrivalDate) === cleanDateStr &&
+          (r.purpose === "Calendar Check-In" ||
+            r.purpose === "Calendar Check-Out" ||
+            r.purpose === "Daily GPS Check-In"),
+      );
+
+      if (explicitSingleRecord) {
+        await updateTravelRecord(explicitSingleRecord.recordId, centerSlice);
+        toast.success(`Presence status updated for ${cleanDateStr}`);
+        return;
+      }
+
+      const overlappingRecords = records.filter((r) => {
+        if (!r.departureDate || !r.arrivalDate) return false;
+        if (isSingleDayOverride(r)) return false;
+        const dep = normalizeDate(r.departureDate);
+        const arr = normalizeDate(r.arrivalDate);
+        return cleanDateStr >= dep && cleanDateStr <= arr;
+      });
+
+      if (overlappingRecords.length > 0) {
+        const idsToDelete = new Set();
+        overlappingRecords.forEach((r) => {
+          if (r.recordId) idsToDelete.add(r.recordId);
+        });
+
+        const uniqueParentsMap = new Map();
+        overlappingRecords.forEach((r) => {
+          const key = `${normalizeDate(r.departureDate)}|${normalizeDate(r.arrivalDate)}|${r.purpose}|${(r.fromCountry || "").toUpperCase()}|${(r.toCountry || "").toUpperCase()}`;
+          if (!uniqueParentsMap.has(key)) {
+            uniqueParentsMap.set(key, r);
+          }
+        });
+
+        const uniqueParents = Array.from(uniqueParentsMap.values());
+        uniqueParents.sort((a, b) => {
+          const aStart = normalizeDate(a.departureDate);
+          const bStart = normalizeDate(b.departureDate);
+          const aSpan =
+            new Date(normalizeDate(a.arrivalDate)) - new Date(aStart);
+          const bSpan =
+            new Date(normalizeDate(b.arrivalDate)) - new Date(bStart);
+          if (aStart !== bStart) return aStart < bStart ? -1 : 1;
+          return bSpan - aSpan;
+        });
+
+        const primaryParent = uniqueParents[0];
+        const pStart = normalizeDate(primaryParent.departureDate);
+        const pEnd = normalizeDate(primaryParent.arrivalDate);
         const baseProps = {
-          fromCountry: parentRangeRecord.fromCountry || homeBase,
-          toCountry: parentRangeRecord.toCountry || homeBase,
-          purpose: parentRangeRecord.purpose,
+          fromCountry: primaryParent.fromCountry || homeBase,
+          toCountry: primaryParent.toCountry || homeBase,
+          purpose: primaryParent.purpose,
         };
 
-        const currentDate = parseISO(cleanDateStr);
-        const prevDayStr = format(subDays(currentDate, 1), "yyyy-MM-dd");
-        const nextDayStr = format(addDays(currentDate, 1), "yyyy-MM-dd");
+        const prevDayStr = format(subDays(parseISO(cleanDateStr), 1), "yyyy-MM-dd");
+        const nextDayStr = format(addDays(parseISO(cleanDateStr), 1), "yyyy-MM-dd");
+        const hasBefore = pStart < cleanDateStr;
+        const hasAfter = pEnd > cleanDateStr;
 
-        if (pStartStr === pEndStr) {
-          await updateTravelRecord(parentRangeRecord.recordId, {
-            departureDate: cleanDateStr,
-            arrivalDate: cleanDateStr,
-            fromCountry: targetFromCountry,
-            toCountry: targetToCountry,
-            purpose: targetPurpose,
-          });
-        } else if (pStartStr === cleanDateStr) {
-          await updateTravelRecord(parentRangeRecord.recordId, {
-            ...baseProps,
-            departureDate: nextDayStr,
-            arrivalDate: pEndStr,
-          });
-
-          const existingSingleDayRecord = records.find((r) => {
-            const dep = normalizeDate(r.departureDate);
-            const arr = normalizeDate(r.arrivalDate);
-            return dep === cleanDateStr && arr === cleanDateStr;
-          });
-
-          if (!existingSingleDayRecord) {
-            await addTravelRecord(user.uid, {
-              departureDate: cleanDateStr,
-              arrivalDate: cleanDateStr,
-              fromCountry: targetFromCountry,
-              toCountry: targetToCountry,
-              purpose: targetPurpose,
-            });
+        for (const recordId of idsToDelete) {
+          try {
+            await deleteTravelRecord(recordId);
+          } catch (err) {
+            console.error("[Calendar Split Delete Error]:", err, recordId);
           }
-        } else if (pEndStr === cleanDateStr) {
-          await updateTravelRecord(parentRangeRecord.recordId, {
-            ...baseProps,
-            departureDate: pStartStr,
-            arrivalDate: prevDayStr,
-          });
+        }
 
-          const existingSingleDayRecord = records.find((r) => {
-            const dep = normalizeDate(r.departureDate);
-            const arr = normalizeDate(r.arrivalDate);
-            return dep === cleanDateStr && arr === cleanDateStr;
-          });
-
-          if (!existingSingleDayRecord) {
-            await addTravelRecord(user.uid, {
-              departureDate: cleanDateStr,
-              arrivalDate: cleanDateStr,
-              fromCountry: targetFromCountry,
-              toCountry: targetToCountry,
-              purpose: targetPurpose,
-            });
+        if (primaryParent.recordId) {
+          const docRef = doc(db, "travelRecords", primaryParent.recordId);
+          const checkDoc = await getDoc(docRef);
+          if (checkDoc.exists()) {
+            console.error(
+              "[Calendar Split] Parent delete failed — record still exists:",
+              primaryParent.recordId,
+            );
           }
+        }
+
+        const pendingCreates = [];
+
+        if (pStart === pEnd) {
+          pendingCreates.push(centerSlice);
         } else {
-          if (
-            isAfter(parseISO(pStartStr), parseISO(prevDayStr)) ||
-            isAfter(parseISO(nextDayStr), parseISO(pEndStr))
-          ) {
-            return;
-          }
-
-          const existingSingleDayRecord = records.find((r) => {
-            const dep = normalizeDate(r.departureDate);
-            const arr = normalizeDate(r.arrivalDate);
-            return dep === cleanDateStr && arr === cleanDateStr;
-          });
-
-          console.log("Parent Record", parentRangeRecord);
-          console.log("DELETE PARENT", parentRangeRecord.recordId, parentRangeRecord);
-
-          await deleteTravelRecord(parentRangeRecord.recordId);
-          console.log("DELETE SUCCESS", parentRangeRecord.recordId);
-
-          const createOperations = [];
-
-          const leftSplit = {
-            ...baseProps,
-            departureDate: pStartStr,
-            arrivalDate: prevDayStr,
-          };
-          const leftSplitExists = records.some((r) => {
-            const dep = normalizeDate(r.departureDate);
-            const arr = normalizeDate(r.arrivalDate);
-            return (
-              dep === pStartStr &&
-              arr === prevDayStr &&
-              (r.purpose || "") === (baseProps.purpose || "") &&
-              (r.fromCountry || "").toUpperCase() ===
-                (baseProps.fromCountry || "").toUpperCase() &&
-              (r.toCountry || "").toUpperCase() ===
-                (baseProps.toCountry || "").toUpperCase()
-            );
-          });
-          if (!leftSplitExists) {
-            console.log("CREATE LEFT SPLIT", leftSplit);
-            createOperations.push(
-              addTravelRecord(user.uid, leftSplit),
-            );
-          } else {
-            console.log("Left Split already exists, skipping", leftSplit);
-          }
-
-          const rightSplit = {
-            ...baseProps,
-            departureDate: nextDayStr,
-            arrivalDate: pEndStr,
-          };
-          const rightSplitExists = records.some((r) => {
-            const dep = normalizeDate(r.departureDate);
-            const arr = normalizeDate(r.arrivalDate);
-            return (
-              dep === nextDayStr &&
-              arr === pEndStr &&
-              (r.purpose || "") === (baseProps.purpose || "") &&
-              (r.fromCountry || "").toUpperCase() ===
-                (baseProps.fromCountry || "").toUpperCase() &&
-              (r.toCountry || "").toUpperCase() ===
-                (baseProps.toCountry || "").toUpperCase()
-            );
-          });
-          if (!rightSplitExists) {
-            console.log("CREATE RIGHT SPLIT", rightSplit);
-            createOperations.push(
-              addTravelRecord(user.uid, rightSplit),
-            );
-          } else {
-            console.log("Right Split already exists, skipping", rightSplit);
-          }
-
-          if (!existingSingleDayRecord) {
-            console.log("CREATE TRAVEL RECORD", {
-              departureDate: cleanDateStr,
-              arrivalDate: cleanDateStr,
-              fromCountry: targetFromCountry,
-              toCountry: targetToCountry,
-              purpose: targetPurpose,
+          if (hasBefore) {
+            pendingCreates.push({
+              departureDate: pStart,
+              arrivalDate: prevDayStr,
+              ...baseProps,
             });
-            createOperations.push(
-              addTravelRecord(user.uid, {
-                departureDate: cleanDateStr,
-                arrivalDate: cleanDateStr,
-                fromCountry: targetFromCountry,
-                toCountry: targetToCountry,
-                purpose: targetPurpose,
-              }),
-            );
           }
 
-          for (const createOp of createOperations) {
-            try {
-              const result = await createOp;
-              console.log("CREATE SUCCESS", result?.id || result);
-            } catch (err) {
-              console.error("[Split Create Error]:", err);
+          pendingCreates.push(centerSlice);
+
+          if (hasAfter) {
+            const rightSplitPurpose =
+              baseProps.purpose === "Initial Home Stay"
+                ? "Automated System Entry"
+                : baseProps.purpose;
+            pendingCreates.push({
+              departureDate: nextDayStr,
+              arrivalDate: pEnd,
+              fromCountry: baseProps.fromCountry,
+              toCountry: baseProps.toCountry,
+              purpose: rightSplitPurpose,
+            });
+          }
+        }
+
+        for (const payload of pendingCreates) {
+          try {
+            await addTravelRecord(user.uid, payload);
+          } catch (err) {
+            console.error("[Calendar Split Create Error]:", err, payload);
+          }
+        }
+
+        for (const overlap of overlappingRecords) {
+          if (!overlap.recordId || !idsToDelete.has(overlap.recordId)) continue;
+          try {
+            const docRef = doc(db, "travelRecords", overlap.recordId);
+            const checkDoc = await getDoc(docRef);
+            if (checkDoc.exists()) {
+              await deleteTravelRecord(overlap.recordId);
             }
+          } catch (err) {
+            console.error("[Calendar Split Cleanup Error]:", err);
           }
+        }
 
-          const remainingDuplicates = records.filter((r) => {
-            if (!r.departureDate || !r.arrivalDate) return false;
-            const dep = normalizeDate(r.departureDate);
-            const arr = normalizeDate(r.arrivalDate);
-            const isSingleDayOverride =
-              dep === arr &&
-              (r.purpose === "Calendar Check-In" ||
-                r.purpose === "Calendar Check-Out" ||
-                r.purpose === "Daily GPS Check-In" ||
-                r.purpose === "Country Changed");
-            if (isSingleDayOverride) return false;
-            return cleanDateStr >= dep && cleanDateStr <= arr;
-          });
-
-          for (const duplicate of remainingDuplicates) {
+        for (const r of records) {
+          if (!r.recordId || idsToDelete.has(r.recordId)) continue;
+          if (isSingleDayOverride(r)) continue;
+          const dep = normalizeDate(r.departureDate);
+          const arr = normalizeDate(r.arrivalDate);
+          if (cleanDateStr >= dep && cleanDateStr <= arr) {
             try {
-              await deleteTravelRecord(duplicate.recordId);
-              console.log("Cleaned up remaining duplicate", duplicate.recordId);
+              await deleteTravelRecord(r.recordId);
             } catch (err) {
-              console.error("[Duplicate Cleanup Error]:", err);
+              console.error("[Calendar Stale Overlap Cleanup Error]:", err);
             }
           }
         }
       } else {
-        const existingSingleDayRecord = records.find((r) => {
-          const dep = normalizeDate(r.departureDate);
-          const arr = normalizeDate(r.arrivalDate);
-          return dep === cleanDateStr && arr === cleanDateStr;
-        });
+        const existingSingleDayRecord = records.find(
+          (r) =>
+            normalizeDate(r.departureDate) === cleanDateStr &&
+            normalizeDate(r.arrivalDate) === cleanDateStr,
+        );
 
         if (!existingSingleDayRecord) {
-          await addTravelRecord(user.uid, {
-            departureDate: cleanDateStr,
-            arrivalDate: cleanDateStr,
-            fromCountry: targetFromCountry,
-            toCountry: targetToCountry,
-            purpose: targetPurpose,
-          });
+          await addTravelRecord(user.uid, centerSlice);
         }
       }
 
@@ -303,6 +227,8 @@ export function usePresenceToggle(user, profile, records) {
     } catch (error) {
       console.error("[Presence Hook Error]:", error);
       toast.error("Could not update presence tracking status.");
+    } finally {
+      setSplittingFlag(false);
     }
   };
 

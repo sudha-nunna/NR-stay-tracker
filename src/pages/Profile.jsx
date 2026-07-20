@@ -210,7 +210,7 @@ const initialEndParts = splitMonthDay(
  // NEW CODE
  // NEW CODE (Replace with this)
 return (
-    <div className="max-w-5xl mx-auto space-y-3 relative z-10 px-3 md:px-6 text-left w-full max-h-[calc(100vh-140px)] overflow-y-auto overflow-x-hidden">
+    <div className="max-w-5xl mx-auto space-y-3 relative z-10 px-3 md:px-6 text-left w-full h-[calc(100dvh-140px)] overflow-y-auto overflow-x-hidden overscroll-contain">
   
   <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 rounded-2xl p-4 md:p-6 shadow-xl">
         <h1 className="text-xl md:text-3xl font-bold text-white">Profile Settings</h1>

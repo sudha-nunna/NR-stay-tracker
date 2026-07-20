@@ -150,8 +150,6 @@ const loggedTrips = records.filter((r) => {
     }
   };
 
-  // Ring proportion: Home vs Abroad split of days logged so far (NOT vs milestone).
-  // Guards against 0/0 when no days have been logged yet.
   const totalTrackedDays = displayHomeDays + displayOutsideDays;
   const abroadFraction =
     totalTrackedDays > 0

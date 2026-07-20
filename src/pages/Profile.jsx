@@ -204,9 +204,15 @@ const initialEndParts = splitMonthDay(
     }
   };
 
-  return (
-    <div className="max-w-5xl mx-auto space-y-3 relative z-10 px-3 md:px-6 pb-1 text-left w-full overflow-hidden">
-      <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 rounded-2xl p-4 md:p-6 shadow-xl">
+  // return (
+  //   <div className="max-w-5xl mx-auto space-y-3 relative z-10 px-3 md:px-6 pb-1 text-left w-full overflow-hidden">
+  // NEW CODE
+ // NEW CODE
+ // NEW CODE (Replace with this)
+return (
+    <div className="max-w-5xl mx-auto space-y-3 relative z-10 px-3 md:px-6 text-left w-full max-h-[calc(100vh-140px)] overflow-y-auto overflow-x-hidden">
+  
+  <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 rounded-2xl p-4 md:p-6 shadow-xl">
         <h1 className="text-xl md:text-3xl font-bold text-white">Profile Settings</h1>
         <p className="text-indigo-100 mt-0.5 text-xs md:text-base max-w-2xl">
           Set custom residency metrics and date parameters instantly.
@@ -214,8 +220,13 @@ const initialEndParts = splitMonthDay(
       </div>
 
       {/* <div className="bg-white border border-slate-200 shadow-xl rounded-3xl p-6"> */}
-      <div className="bg-white border border-slate-200 shadow-xl rounded-2xl md:rounded-3xl p-4 md:p-6">
-        <form onSubmit={handleSubmit(onUpdate)} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* <div className="bg-white border border-slate-200 shadow-xl rounded-2xl md:rounded-3xl p-4 md:p-6"> */}
+     
+     {/* <div className="bg-white border border-slate-200 shadow-xl rounded-2xl md:rounded-3xl p-4 md:p-6">
+        <form onSubmit={handleSubmit(onUpdate)} className="grid grid-cols-1 md:grid-cols-2 gap-4"> */}
+
+      <div className="bg-white border border-slate-200 shadow-xl rounded-2xl md:rounded-3xl p-3 md:p-6 overflow-hidden">
+        <form onSubmit={handleSubmit(onUpdate)} className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-full">
           {/* Country Selection Dropdown Panel */}
           <div className="relative" ref={countryRef}>
             <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-2">

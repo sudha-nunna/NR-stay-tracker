@@ -284,9 +284,9 @@ export default function Analytics() {
             <span>
               Days Recorded: <strong className="text-slate-800">{activeDaysLogged} Days</strong>
             </span>
-            <span>
+            {/* <span>
               Target Days: <strong className="text-slate-800">{activeTargetMilestone} Days</strong>
-            </span>
+            </span> */}
           </div>
         </div>
 

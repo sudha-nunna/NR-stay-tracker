@@ -132,9 +132,9 @@ export default function StayCalendar({
               Travel Calendar
             </h2>
             <div className="flex flex-wrap gap-2">
-              <span className="px-2.5 py-1 text-xs font-semibold bg-green-50 text-green-700 border border-green-200 rounded-lg whitespace-nowrap">🏠 Home: {Object.values(dayMap).filter(d => d.status === "Home Stay").length} Days</span>
-              <span className="px-2.5 py-1 text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200 rounded-lg whitespace-nowrap">🌍 Abroad: {Object.values(dayMap).filter(d => d.status === "Abroad Stay").length} Days</span>
-              <span className="px-2.5 py-1 text-xs font-semibold bg-purple-50 text-purple-700 border border-purple-200 rounded-lg whitespace-nowrap">📋 Total: {Object.values(dayMap).length} Days</span>
+              <span className="px-2.5 py-1 text-xs font-semibold bg-green-50 text-green-700 border border-green-200 rounded-lg whitespace-nowrap">🏠 Home: {Object.values(dayMap).filter(d => d.status === "Home Stay").length} d</span>
+              <span className="px-2.5 py-1 text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200 rounded-lg whitespace-nowrap">🌍 Abroad: {Object.values(dayMap).filter(d => d.status === "Abroad Stay").length}d</span>
+              <span className="px-2.5 py-1 text-xs font-semibold bg-purple-50 text-purple-700 border border-purple-200 rounded-lg whitespace-nowrap">📋 Total: {Object.values(dayMap).length} d</span>
             </div>
           </div>
           <p className="text-slate-500 text-[16px] mt-0.5">
